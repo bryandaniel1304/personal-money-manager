@@ -135,31 +135,96 @@ function seed(currency = 'IDR') {
   };
 }
 
-function load() {
-  try {
-    let raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      const oldRaw = localStorage.getItem('ledgerly.v1');
-      if (oldRaw) {
-        const old = JSON.parse(oldRaw);
-        const isOldDemo = old.currency === 'USD' && old.transactions?.some((t) => t.note === 'Monthly salary' && t.amount === 4200);
-        if (isOldDemo) return seed('IDR');
-        old.currency = 'IDR';
-        return old;
-      }
-      return null;
-    }
-    const s = JSON.parse(raw);
-    if (!s || !Array.isArray(s.transactions)) return null;
-    s.budgets ||= {}; s.goals ||= [];
-    if (!CURRENCIES[s.currency]) s.currency = 'IDR';
-    return s;
-  } catch { return null; }
-}
-const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+const USERS_KEY = 'ledgerly.auth.users';
+const SESSION_KEY = 'ledgerly.auth.session';
+const userDataKey = (uid) => `ledgerly.v2.data_${uid}`;
 
-let state = load();
-if (!state) { state = seed('IDR'); save(); }
+async function hashPassword(str) {
+  if (window.crypto && crypto.subtle) {
+    try {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    } catch {}
+  }
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  return 'fb_' + Math.abs(h).toString(16);
+}
+
+function getUsers() {
+  try {
+    const u = JSON.parse(localStorage.getItem(USERS_KEY));
+    if (Array.isArray(u) && u.length) return u;
+  } catch {}
+  const initial = [
+    {
+      id: 'usr_demo',
+      name: 'Bryan Daniel',
+      email: 'demo@ledgerly.app',
+      passwordHash: 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', // password123
+      createdAt: '2026-10-23',
+    },
+  ];
+  localStorage.setItem(USERS_KEY, JSON.stringify(initial));
+  return initial;
+}
+
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function getSession() {
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_KEY));
+  } catch {
+    return null;
+  }
+}
+
+function setSession(user) {
+  if (user) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ id: user.id, name: user.name, email: user.email }));
+  } else {
+    localStorage.removeItem(SESSION_KEY);
+  }
+}
+
+function loadUserData(userId, seedIfEmpty = true) {
+  try {
+    const raw = localStorage.getItem(userDataKey(userId));
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && Array.isArray(s.transactions)) {
+        s.budgets ||= {};
+        s.goals ||= [];
+        if (!CURRENCIES[s.currency]) s.currency = 'IDR';
+        return s;
+      }
+    }
+  } catch {}
+  if (seedIfEmpty) {
+    const fresh = seed('IDR');
+    saveUserData(userId, fresh);
+    return fresh;
+  }
+  const empty = { currency: 'IDR', transactions: [], budgets: {}, goals: [] };
+  saveUserData(userId, empty);
+  return empty;
+}
+
+function saveUserData(userId, data) {
+  if (!userId || !data) return;
+  localStorage.setItem(userDataKey(userId), JSON.stringify(data));
+}
+
+let currentUser = getSession();
+let state = currentUser ? loadUserData(currentUser.id, true) : null;
+
+const save = () => {
+  if (currentUser && currentUser.id && state) {
+    saveUserData(currentUser.id, state);
+  }
+};
 
 const TODAY = new Date();
 const ui = {
@@ -174,7 +239,7 @@ const ui = {
 
 /* ---------------- formatting ---------------- */
 function fmt(n, { compact = false, sign = false } = {}) {
-  const cur = state.currency;
+  const cur = state?.currency || 'IDR';
   const zero = ZERO_DECIMAL.includes(cur);
   const out = new Intl.NumberFormat(CURRENCIES[cur].locale, {
     style: 'currency', currency: cur,
@@ -186,8 +251,9 @@ function fmt(n, { compact = false, sign = false } = {}) {
   return sign && n > 0 ? '+' + out : out;
 }
 function currencySymbol() {
-  const parts = new Intl.NumberFormat(CURRENCIES[state.currency].locale, { style: 'currency', currency: state.currency }).formatToParts(0);
-  return parts.find((p) => p.type === 'currency')?.value || state.currency;
+  const cur = state?.currency || 'IDR';
+  const parts = new Intl.NumberFormat(CURRENCIES[cur].locale, { style: 'currency', currency: cur }).formatToParts(0);
+  return parts.find((p) => p.type === 'currency')?.value || cur;
 }
 const fmtDate = (iso, opts = { month: 'short', day: 'numeric' }) => parseISO(iso).toLocaleDateString('en-US', opts);
 const txInMonth = (d) => { const k = monthKey(d); return state.transactions.filter((t) => t.date.startsWith(k)); };
@@ -515,8 +581,11 @@ function renderPlanning() {
 
 /* ---------------- render: shell ---------------- */
 function renderHeader() {
+  if (!state) return;
   const h = TODAY.getHours();
-  $('#greeting').textContent = `${h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'} 👋`;
+  const firstName = currentUser?.name ? currentUser.name.trim().split(/\s+/)[0] : '';
+  const greetTime = h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam';
+  $('#greeting').textContent = `${greetTime}${firstName ? ', ' + firstName : ''} 👋`;
   $('#view-title').textContent = VIEW_TITLES[ui.view];
   $('#month-label').textContent = ui.month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   $('#next-month').disabled = isCurrentMonth(ui.month) || ui.month > TODAY;
@@ -532,6 +601,7 @@ function renderHeader() {
 }
 
 function render() {
+  if (!currentUser || !state) return;
   renderHeader();
   renderStats();
   renderCashflow();
@@ -649,17 +719,30 @@ function bindEvents() {
   // currency
   const sel = $('#currency-select');
   sel.innerHTML = Object.entries(CURRENCIES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
-  sel.value = state.currency;
-  sel.addEventListener('change', () => { state.currency = sel.value; save(); render(); toast(`Currency set to ${sel.value} (display only — amounts are not converted)`); });
+  if (state) sel.value = state.currency;
+  sel.addEventListener('change', () => {
+    if (!state) return;
+    state.currency = sel.value;
+    save();
+    render();
+    toast(`Mata uang diatur ke ${sel.value}`);
+  });
 
   $('#export-btn').addEventListener('click', exportCSV);
   $('#reset-btn').addEventListener('click', () => {
-    if (!confirm('Replace all your data with sample demo data?')) return;
-    state = seed(state.currency); save(); ui.month = monthStart(TODAY); render(); toast('Demo data loaded');
+    if (!state || !confirm('Ganti semua data Anda dengan contoh data transaksi (IDR)?')) return;
+    state = seed(state.currency);
+    save();
+    ui.month = monthStart(TODAY);
+    render();
+    toast('Data contoh berhasil dimuat');
   });
   $('#clear-btn').addEventListener('click', () => {
-    if (!confirm('Delete ALL transactions, budgets and goals? This cannot be undone.')) return;
-    state = { currency: state.currency, transactions: [], budgets: {}, goals: [] }; save(); render(); toast('All data cleared — fresh start!');
+    if (!state || !confirm('Hapus SEMUA transaksi, anggaran, dan target tabungan? Tindakan ini tidak dapat dibatalkan.')) return;
+    state = { currency: state.currency, transactions: [], budgets: {}, goals: [] };
+    save();
+    render();
+    toast('Semua data berhasil dibersihkan');
   });
 
   // delegated actions
@@ -775,8 +858,183 @@ function bindEvents() {
     e.preventDefault(); openTxModal();
   });
 
+  // Authentication tab switching
+  const tabLogin = $('#tab-login');
+  const tabSignup = $('#tab-signup');
+  const formLogin = $('#login-form');
+  const formSignup = $('#signup-form');
+
+  if (tabLogin && tabSignup) {
+    tabLogin.addEventListener('click', () => {
+      tabLogin.classList.add('active');
+      tabSignup.classList.remove('active');
+      tabLogin.setAttribute('aria-selected', 'true');
+      tabSignup.setAttribute('aria-selected', 'false');
+      formLogin.hidden = false;
+      formSignup.hidden = true;
+      $('#auth-title').textContent = 'Masuk ke Dashboard';
+      $('#auth-sub').textContent = 'Kelola keuangan, anggaran, dan target tabungan Anda dengan aman.';
+      $('#login-error').hidden = true;
+    });
+
+    tabSignup.addEventListener('click', () => {
+      tabSignup.classList.add('active');
+      tabLogin.classList.remove('active');
+      tabSignup.setAttribute('aria-selected', 'true');
+      tabLogin.setAttribute('aria-selected', 'false');
+      formSignup.hidden = false;
+      formLogin.hidden = true;
+      $('#auth-title').textContent = 'Buat Akun Baru';
+      $('#auth-sub').textContent = 'Daftar sekarang untuk memulai pencatatan keuangan pribadi Anda.';
+      $('#signup-error').hidden = true;
+    });
+  }
+
+  // Password visibility toggles
+  $$('.toggle-pwd').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const inp = $('#' + btn.dataset.target);
+      if (!inp) return;
+      const isPwd = inp.type === 'password';
+      inp.type = isPwd ? 'text' : 'password';
+      btn.textContent = isPwd ? '🙈' : '👁️';
+    });
+  });
+
+  // Demo account quick login
+  $('#demo-login-btn')?.addEventListener('click', () => {
+    const users = getUsers();
+    const demo = users.find((u) => u.id === 'usr_demo') || users[0];
+    setSession(demo);
+    updateAuthUI();
+    toast(`Masuk sebagai ${demo.name} (Demo)`);
+  });
+
+  // Login form submission
+  formLogin?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = $('#login-email').value.trim().toLowerCase();
+    const pwd = $('#login-password').value;
+    const err = $('#login-error');
+    err.hidden = true;
+
+    if (!email || !pwd) {
+      err.textContent = 'Silakan masukkan email dan password.';
+      err.hidden = false;
+      return;
+    }
+
+    const users = getUsers();
+    const user = users.find((u) => u.email.toLowerCase() === email);
+    const hash = await hashPassword(pwd);
+
+    if (!user || user.passwordHash !== hash) {
+      err.textContent = 'Email atau password yang Anda masukkan salah.';
+      err.hidden = false;
+      return;
+    }
+
+    setSession(user);
+    updateAuthUI();
+    toast(`Selamat datang kembali, ${user.name}!`);
+  });
+
+  // Signup form submission
+  formSignup?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = $('#signup-name').value.trim();
+    const email = $('#signup-email').value.trim().toLowerCase();
+    const pwd = $('#signup-password').value;
+    const confirm = $('#signup-confirm').value;
+    const seedDemo = $('#signup-seed-demo').checked;
+    const err = $('#signup-error');
+    err.hidden = true;
+
+    if (!name || name.length < 2) {
+      err.textContent = 'Nama lengkap minimal 2 karakter.';
+      err.hidden = false;
+      $('#signup-name').focus();
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      err.textContent = 'Format email tidak valid.';
+      err.hidden = false;
+      $('#signup-email').focus();
+      return;
+    }
+    if (pwd.length < 6) {
+      err.textContent = 'Password minimal harus 6 karakter.';
+      err.hidden = false;
+      $('#signup-password').focus();
+      return;
+    }
+    if (pwd !== confirm) {
+      err.textContent = 'Konfirmasi password tidak cocok.';
+      err.hidden = false;
+      $('#signup-confirm').focus();
+      return;
+    }
+
+    const users = getUsers();
+    if (users.some((u) => u.email.toLowerCase() === email)) {
+      err.textContent = 'Email ini sudah terdaftar. Silakan pilih tab Masuk.';
+      err.hidden = false;
+      return;
+    }
+
+    const hash = await hashPassword(pwd);
+    const newUser = {
+      id: uid(),
+      name,
+      email,
+      passwordHash: hash,
+      createdAt: toISO(new Date()),
+    };
+    users.push(newUser);
+    saveUsers(users);
+
+    // Initialize personal data for new user
+    loadUserData(newUser.id, seedDemo);
+    setSession(newUser);
+    updateAuthUI();
+    toast(`Akun berhasil dibuat! Selamat datang, ${name}.`);
+  });
+
+  // Logout handlers
+  const handleLogout = () => {
+    if (!confirm('Apakah Anda yakin ingin keluar dari akun ini?')) return;
+    setSession(null);
+    updateAuthUI();
+    toast('Anda telah berhasil keluar.');
+  };
+  $('#sidebar-logout-btn')?.addEventListener('click', handleLogout);
+  $('#topbar-logout-btn')?.addEventListener('click', handleLogout);
+
   setupCashflowHover();
 }
 
+function updateAuthUI() {
+  currentUser = getSession();
+  const authScreen = $('#auth-screen');
+  const appEl = $('#app');
+  if (!currentUser) {
+    authScreen.hidden = false;
+    appEl.hidden = true;
+    state = null;
+  } else {
+    authScreen.hidden = true;
+    appEl.hidden = false;
+    state = loadUserData(currentUser.id, true);
+    const initials = currentUser.name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() || 'U';
+    $('#user-avatar').textContent = initials;
+    $('#user-name').textContent = currentUser.name;
+    $('#user-email').textContent = currentUser.email;
+    const sel = $('#currency-select');
+    if (sel && state) sel.value = state.currency;
+    render();
+  }
+}
+
 bindEvents();
-render();
+updateAuthUI();
