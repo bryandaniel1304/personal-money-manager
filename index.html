@@ -266,15 +266,15 @@
       <label class="field">
         <span>Amount</span>
         <div class="amount-input">
-          <span class="currency-symbol">$</span>
-          <input type="number" name="amount" id="tx-amount" min="0" step="0.01" placeholder="0.00" required />
+          <span class="currency-symbol">Rp</span>
+          <input type="number" name="amount" id="tx-amount" min="0" step="1" placeholder="0" required />
         </div>
       </label>
       <div class="field-row">
         <label class="field"><span>Category</span><select name="category" id="tx-category"></select></label>
         <label class="field"><span>Date</span><input type="date" name="date" id="tx-date" required /></label>
       </div>
-      <label class="field"><span>Note</span><input type="text" name="note" id="tx-note" maxlength="60" placeholder="e.g. Groceries at the market" /></label>
+      <label class="field"><span>Note</span><input type="text" name="note" id="tx-note" maxlength="60" placeholder="e.g. Belanja bulanan / Makan siang" /></label>
       <p class="form-error" id="tx-error" hidden>Please enter an amount greater than zero.</p>
       <div class="modal-actions">
         <button type="button" class="btn btn-danger" id="tx-delete" hidden>Delete</button>
@@ -294,7 +294,7 @@
       <label class="field"><span>Category</span><select name="category" id="budget-category"></select></label>
       <label class="field">
         <span>Monthly limit</span>
-        <div class="amount-input"><span class="currency-symbol">$</span><input type="number" name="limit" id="budget-limit" min="0" step="0.01" placeholder="0.00" required /></div>
+        <div class="amount-input"><span class="currency-symbol">Rp</span><input type="number" name="limit" id="budget-limit" min="0" step="1" placeholder="0" required /></div>
       </label>
       <div class="modal-actions">
         <span class="spacer"></span>
@@ -310,15 +310,15 @@
         <h2>New savings goal</h2>
         <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
       </div>
-      <label class="field"><span>Goal name</span><input type="text" name="name" id="goal-name" maxlength="32" placeholder="e.g. Emergency fund" required /></label>
+      <label class="field"><span>Goal name</span><input type="text" name="name" id="goal-name" maxlength="32" placeholder="e.g. Dana Darurat" required /></label>
       <div class="field-row">
         <label class="field">
           <span>Target</span>
-          <div class="amount-input"><span class="currency-symbol">$</span><input type="number" name="target" id="goal-target" min="0" step="0.01" placeholder="0.00" required /></div>
+          <div class="amount-input"><span class="currency-symbol">Rp</span><input type="number" name="target" id="goal-target" min="0" step="1" placeholder="0" required /></div>
         </label>
         <label class="field">
           <span>Already saved</span>
-          <div class="amount-input"><span class="currency-symbol">$</span><input type="number" name="saved" id="goal-saved" min="0" step="0.01" placeholder="0.00" /></div>
+          <div class="amount-input"><span class="currency-symbol">Rp</span><input type="number" name="saved" id="goal-saved" min="0" step="1" placeholder="0" /></div>
         </label>
       </div>
       <div class="field"><span>Icon</span><div class="chip-picker" id="goal-icons"></div></div>
@@ -339,7 +339,7 @@
       </div>
       <label class="field">
         <span>Amount (use a negative number to withdraw)</span>
-        <div class="amount-input"><span class="currency-symbol">$</span><input type="number" name="amount" id="fund-amount" step="0.01" placeholder="0.00" required /></div>
+        <div class="amount-input"><span class="currency-symbol">Rp</span><input type="number" name="amount" id="fund-amount" step="1" placeholder="0" required /></div>
       </label>
       <div class="modal-actions">
         <span class="spacer"></span>

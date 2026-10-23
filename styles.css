@@ -442,9 +442,10 @@ tr:hover .row-actions { opacity: 1; }
 .field input, .field select { width: 100%; }
 .field-row { display: flex; gap: 12px; }
 .amount-input { position: relative; }
-.amount-input .currency-symbol { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 500; pointer-events: none; }
-.amount-input input { padding-left: 34px; font-variant-numeric: tabular-nums; }
-#tx-amount { font-family: var(--font-display); font-size: 22px; font-weight: 600; padding-top: 12px; padding-bottom: 12px; }
+.amount-input .currency-symbol { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 600; pointer-events: none; }
+.amount-input input { padding-left: 44px; font-variant-numeric: tabular-nums; }
+#tx-amount { font-family: var(--font-display); font-size: 22px; font-weight: 600; padding-top: 12px; padding-bottom: 12px; padding-left: 54px; }
+.amount-input:has(#tx-amount) .currency-symbol { font-size: 18px; }
 .modal-actions { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
 .spacer { flex: 1; }
 .form-error { color: var(--rose); font-size: 12.5px; }

@@ -5,7 +5,7 @@
    All data is stored locally in the browser (localStorage).
    ========================================================= */
 
-const STORAGE_KEY = 'ledgerly.v1';
+const STORAGE_KEY = 'ledgerly.v2';
 
 const CATEGORIES = {
   expense: [
@@ -32,15 +32,16 @@ const ALL_CATS = [...CATEGORIES.expense, ...CATEGORIES.income];
 
 // `demo` scales the sample data so it looks realistic in each currency.
 const CURRENCIES = {
-  USD: { locale: 'en-US', demo: 1, label: 'USD — US Dollar' },
-  EUR: { locale: 'de-DE', demo: 0.92, label: 'EUR — Euro' },
-  GBP: { locale: 'en-GB', demo: 0.79, label: 'GBP — British Pound' },
-  VND: { locale: 'vi-VN', demo: 25000, label: 'VND — Vietnamese Dong' },
-  JPY: { locale: 'ja-JP', demo: 150, label: 'JPY — Japanese Yen' },
-  SGD: { locale: 'en-SG', demo: 1.35, label: 'SGD — Singapore Dollar' },
-  AUD: { locale: 'en-AU', demo: 1.5, label: 'AUD — Australian Dollar' },
+  IDR: { locale: 'id-ID', demo: 3500, label: 'IDR — Rupiah Indonesia (Rp)' },
+  USD: { locale: 'en-US', demo: 1, label: 'USD — US Dollar ($)' },
+  EUR: { locale: 'de-DE', demo: 0.92, label: 'EUR — Euro (€)' },
+  GBP: { locale: 'en-GB', demo: 0.79, label: 'GBP — British Pound (£)' },
+  SGD: { locale: 'en-SG', demo: 1.35, label: 'SGD — Singapore Dollar (S$)' },
+  AUD: { locale: 'en-AU', demo: 1.5, label: 'AUD — Australian Dollar (A$)' },
+  JPY: { locale: 'ja-JP', demo: 150, label: 'JPY — Japanese Yen (¥)' },
+  VND: { locale: 'vi-VN', demo: 25000, label: 'VND — Vietnamese Dong (₫)' },
 };
-const ZERO_DECIMAL = ['VND', 'JPY'];
+const ZERO_DECIMAL = ['IDR', 'VND', 'JPY'];
 
 const GOAL_ICONS = ['🛟', '✈️', '💻', '🏡', '🚗', '🎓', '💍', '🎮', '📱', '🌴'];
 const GOAL_COLORS = ['#34d399', '#22d3ee', '#a78bfa', '#f472b6', '#fbbf24', '#fb7185', '#60a5fa'];
@@ -81,13 +82,14 @@ function mulberry32(a) {
 }
 
 /* ---------------- state ---------------- */
-function seed(currency = 'USD') {
-  const f = CURRENCIES[currency]?.demo ?? 1;
+function seed(currency = 'IDR') {
+  const f = CURRENCIES[currency]?.demo ?? 3500;
   const round = (v) => (f >= 100 ? Math.round((v * f) / 1000) * 1000 : Math.round(v * f * 100) / 100);
   const rnd = mulberry32(20261023);
   const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
   const now = new Date();
   const tx = [];
+  const isIDR = currency === 'IDR';
 
   for (let m = 5; m >= 0; m--) {
     const base = addMonths(now, -m);
@@ -100,22 +102,22 @@ function seed(currency = 'USD') {
       tx.push({ id: uid(), type, category, amount: round(amount), note, date: toISO(new Date(y, mo, d)) });
     };
 
-    add(1, 'income', 'salary', 4200, 'Monthly salary');
-    if (rnd() > 0.35) add(day(), 'income', 'freelance', 300 + rnd() * 900, pick(['Website project', 'Logo design', 'Consulting call', 'App UI work']));
-    if (rnd() > 0.55) add(15, 'income', 'investments', 40 + rnd() * 160, 'Dividends');
-    if (rnd() > 0.85) add(day(), 'income', 'gifts', 100 + rnd() * 150, 'Birthday gift');
+    add(1, 'income', 'salary', 4200, isIDR ? 'Gaji bulanan' : 'Monthly salary');
+    if (rnd() > 0.35) add(day(), 'income', 'freelance', 300 + rnd() * 900, isIDR ? pick(['Proyek website', 'Desain logo', 'Konsultasi app', 'Desain UI mobile']) : pick(['Website project', 'Logo design', 'Consulting call', 'App UI work']));
+    if (rnd() > 0.55) add(15, 'income', 'investments', 40 + rnd() * 160, isIDR ? 'Dividen reksadana' : 'Dividends');
+    if (rnd() > 0.85) add(day(), 'income', 'gifts', 100 + rnd() * 150, isIDR ? 'Hadiah ulang tahun' : 'Birthday gift');
 
-    add(2, 'expense', 'housing', 1250, 'Rent');
-    add(6, 'expense', 'utilities', 85 + rnd() * 60, 'Electricity & water');
-    add(9, 'expense', 'utilities', 45, 'Internet');
-    add(12, 'expense', 'utilities', 18, 'Phone plan');
-    for (let i = 0; i < 9; i++) add(day(), 'expense', 'food', 12 + rnd() * 70, pick(['Groceries', 'Lunch with team', 'Coffee', 'Dinner out', 'Bakery', 'Street food', 'Supermarket']));
-    for (let i = 0; i < 4; i++) add(day(), 'expense', 'transport', 8 + rnd() * 40, pick(['Fuel', 'Metro card', 'Grab ride', 'Parking', 'Car wash']));
-    for (let i = 0; i < 3; i++) add(day(), 'expense', 'shopping', 20 + rnd() * 140, pick(['Clothes', 'Home decor', 'Sneakers', 'Gadget accessory', 'Books']));
-    for (let i = 0; i < 2; i++) add(day(), 'expense', 'entertainment', 10 + rnd() * 55, pick(['Cinema', 'Streaming subscription', 'Concert tickets', 'Video game', 'Bowling night']));
-    if (rnd() > 0.45) add(day(), 'expense', 'health', 20 + rnd() * 110, pick(['Pharmacy', 'Gym membership', 'Dental check-up']));
-    if (rnd() > 0.65) add(day(), 'expense', 'education', 25 + rnd() * 90, pick(['Online course', 'Workshop', 'Language class']));
-    if (m === 2) add(18, 'expense', 'travel', 640, 'Weekend trip to Da Lat');
+    add(2, 'expense', 'housing', 1250, isIDR ? 'Sewa apartemen / kos' : 'Rent');
+    add(6, 'expense', 'utilities', 85 + rnd() * 60, isIDR ? 'Listrik PLN & air PAM' : 'Electricity & water');
+    add(9, 'expense', 'utilities', 45, isIDR ? 'Tagihan wifi internet' : 'Internet');
+    add(12, 'expense', 'utilities', 18, isIDR ? 'Paket data & pulsa' : 'Phone plan');
+    for (let i = 0; i < 9; i++) add(day(), 'expense', 'food', 12 + rnd() * 70, isIDR ? pick(['Belanja supermarket', 'Makan siang kantor', 'Kopi kekinian', 'Makan malam resto', 'Sarapan / bakery', 'Kuliner pasar']) : pick(['Groceries', 'Lunch with team', 'Coffee', 'Dinner out', 'Bakery', 'Street food', 'Supermarket']));
+    for (let i = 0; i < 4; i++) add(day(), 'expense', 'transport', 8 + rnd() * 40, isIDR ? pick(['Bensin Pertamax', 'Saldo e-money / MRT', 'Ongkos Grab / Gojek', 'Parkir bulanan', 'Cuci motor/mobil']) : pick(['Fuel', 'Metro card', 'Grab ride', 'Parking', 'Car wash']));
+    for (let i = 0; i < 3; i++) add(day(), 'expense', 'shopping', 20 + rnd() * 140, isIDR ? pick(['Baju & pakaian', 'Dekorasi kamar', 'Sepatu sneakers', 'Aksesoris gadget', 'Buku bacaan']) : pick(['Clothes', 'Home decor', 'Sneakers', 'Gadget accessory', 'Books']));
+    for (let i = 0; i < 2; i++) add(day(), 'expense', 'entertainment', 10 + rnd() * 55, isIDR ? pick(['Tiket bioskop XXI', 'Langganan Netflix & Spotify', 'Tiket konser musik', 'Game Steam/PlayStation', 'Nongkrong cafe malam']) : pick(['Cinema', 'Streaming subscription', 'Concert tickets', 'Video game', 'Bowling night']));
+    if (rnd() > 0.45) add(day(), 'expense', 'health', 20 + rnd() * 110, isIDR ? pick(['Apotek & vitamin', 'Membership gym', 'Pemeriksaan dokter']) : pick(['Pharmacy', 'Gym membership', 'Dental check-up']));
+    if (rnd() > 0.65) add(day(), 'expense', 'education', 25 + rnd() * 90, isIDR ? pick(['Kursus online Udemy', 'Workshop coding', 'Kelas bahasa asing']) : pick(['Online course', 'Workshop', 'Language class']));
+    if (m === 2) add(18, 'expense', 'travel', 640, isIDR ? 'Liburan akhir pekan ke Bali' : 'Weekend trip to Da Lat');
   }
 
   return {
@@ -126,26 +128,38 @@ function seed(currency = 'USD') {
       shopping: round(300), entertainment: round(120), utilities: round(200),
     },
     goals: [
-      { id: uid(), name: 'Emergency fund', icon: '🛟', color: '#34d399', target: round(10000), saved: round(6400) },
-      { id: uid(), name: 'Japan trip', icon: '✈️', color: '#22d3ee', target: round(3500), saved: round(1250) },
-      { id: uid(), name: 'New laptop', icon: '💻', color: '#a78bfa', target: round(2000), saved: round(1650) },
+      { id: uid(), name: isIDR ? 'Dana darurat' : 'Emergency fund', icon: '🛟', color: '#34d399', target: round(10000), saved: round(6400) },
+      { id: uid(), name: isIDR ? 'Liburan ke Jepang' : 'Japan trip', icon: '✈️', color: '#22d3ee', target: round(3500), saved: round(1250) },
+      { id: uid(), name: isIDR ? 'Laptop baru' : 'New laptop', icon: '💻', color: '#a78bfa', target: round(2000), saved: round(1650) },
     ],
   };
 }
 
 function load() {
   try {
-    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      const oldRaw = localStorage.getItem('ledgerly.v1');
+      if (oldRaw) {
+        const old = JSON.parse(oldRaw);
+        const isOldDemo = old.currency === 'USD' && old.transactions?.some((t) => t.note === 'Monthly salary' && t.amount === 4200);
+        if (isOldDemo) return seed('IDR');
+        old.currency = 'IDR';
+        return old;
+      }
+      return null;
+    }
+    const s = JSON.parse(raw);
     if (!s || !Array.isArray(s.transactions)) return null;
     s.budgets ||= {}; s.goals ||= [];
-    if (!CURRENCIES[s.currency]) s.currency = 'USD';
+    if (!CURRENCIES[s.currency]) s.currency = 'IDR';
     return s;
   } catch { return null; }
 }
 const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 
 let state = load();
-if (!state) { state = seed('USD'); save(); }
+if (!state) { state = seed('IDR'); save(); }
 
 const TODAY = new Date();
 const ui = {
@@ -508,8 +522,13 @@ function renderHeader() {
   $('#next-month').disabled = isCurrentMonth(ui.month) || ui.month > TODAY;
   const sym = currencySymbol();
   $$('.currency-symbol').forEach((el) => { el.textContent = sym; });
-  const step = ZERO_DECIMAL.includes(state.currency) ? '1' : '0.01';
-  $$('.amount-input input').forEach((el) => { el.step = step; });
+  const isZero = ZERO_DECIMAL.includes(state.currency);
+  const step = isZero ? '1' : '0.01';
+  const ph = isZero ? '0' : '0.00';
+  $$('.amount-input input').forEach((el) => {
+    el.step = step;
+    el.placeholder = ph;
+  });
 }
 
 function render() {
