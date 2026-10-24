@@ -50,6 +50,7 @@ const VIEW_TITLES = {
   overview: 'Your money at a glance',
   transactions: 'Transactions',
   planning: 'Budgets & goals',
+  nutrition: 'Nutrisi & Defisit Kalori AI',
 };
 
 const ICON = {
@@ -78,6 +79,453 @@ function mulberry32(a) {
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* =========================================================
+   NUTRITION & AI FOOD ENGINE DATA & UTILS
+   ========================================================= */
+const FOOD_KNOWLEDGE_BASE = [
+  // Karbohidrat & Pokok
+  { keywords: ['nasi putih', 'nasi'], name: 'Nasi Putih', portion: '1 porsi (150g)', cal: 204, p: 4.2, c: 45, f: 0.4, fiber: 0.6 },
+  { keywords: ['nasi merah'], name: 'Nasi Merah', portion: '1 porsi (150g)', cal: 165, p: 3.8, c: 35, f: 1.2, fiber: 2.8 },
+  { keywords: ['nasi uduk'], name: 'Nasi Uduk', portion: '1 porsi (150g)', cal: 260, p: 5.1, c: 42, f: 8.5, fiber: 0.8 },
+  { keywords: ['nasi kuning'], name: 'Nasi Kuning', portion: '1 porsi (150g)', cal: 245, p: 4.8, c: 40, f: 7.2, fiber: 0.8 },
+  { keywords: ['nasi padang rendang', 'nasi rendang'], name: 'Nasi Padang Rendang Komplit', portion: '1 porsi nasi + rendang + daun singkong + kuah gulai', cal: 650, p: 28, c: 74, f: 26, fiber: 4.5 },
+  { keywords: ['nasi goreng', 'nasgor'], name: 'Nasi Goreng', portion: '1 piring sedang', cal: 380, p: 9.5, c: 55, f: 14, fiber: 1.5 },
+  { keywords: ['lontong', 'ketupat'], name: 'Lontong / Ketupat', portion: '1 buah (100g)', cal: 130, p: 2.5, c: 28, f: 0.3, fiber: 0.5 },
+  { keywords: ['mie goreng', 'indomie goreng', 'mi goreng'], name: 'Mie Goreng Instant', portion: '1 bungkus', cal: 380, p: 8, c: 54, f: 15, fiber: 2 },
+  { keywords: ['mie kuah', 'mie rebus', 'indomie kuah', 'mi kuah'], name: 'Mie Kuah Instant', portion: '1 bungkus', cal: 330, p: 7, c: 50, f: 12, fiber: 2 },
+  { keywords: ['mie kuning', 'bihun', 'kwetiau'], name: 'Mie / Bihun Rebus', portion: '1 mangkok', cal: 190, p: 4, c: 40, f: 1.5, fiber: 1.2 },
+  { keywords: ['oatmeal', 'oat'], name: 'Oatmeal', portion: '1 mangkok (40g kering)', cal: 150, p: 5, c: 27, f: 2.5, fiber: 4 },
+  { keywords: ['roti gandum'], name: 'Roti Gandum Utuh', portion: '1 lembar', cal: 75, p: 3.5, c: 13, f: 1.1, fiber: 2.2 },
+  { keywords: ['roti tawar', 'roti'], name: 'Roti Tawar Putih', portion: '1 lembar', cal: 80, p: 2.8, c: 15, f: 1.0, fiber: 0.8 },
+  { keywords: ['kentang rebus', 'kentang kukus'], name: 'Kentang Rebus', portion: '1 buah sedang (150g)', cal: 130, p: 3, c: 30, f: 0.2, fiber: 2.5 },
+  { keywords: ['kentang goreng', 'french fries'], name: 'Kentang Goreng', portion: '1 porsi (100g)', cal: 312, p: 3.4, c: 41, f: 15, fiber: 3.8 },
+  { keywords: ['ubi rebus', 'ubi jalar', 'ubi'], name: 'Ubi Jalar Rebus', portion: '1 buah sedang (130g)', cal: 112, p: 2, c: 26, f: 0.1, fiber: 3.9 },
+
+  // Protein Hewani
+  { keywords: ['dada ayam bakar', 'dada ayam panggang'], name: 'Dada Ayam Bakar / Panggang', portion: '100g fillet', cal: 165, p: 31, c: 1.5, f: 3.6, fiber: 0 },
+  { keywords: ['dada ayam rebus', 'dada ayam kukus', 'dada ayam'], name: 'Dada Ayam Kukus / Rebus', portion: '100g fillet', cal: 150, p: 31, c: 0, f: 2.5, fiber: 0 },
+  { keywords: ['ayam bakar', 'paha ayam bakar'], name: 'Ayam Bakar Tradisional', portion: '1 potong (paha/dada)', cal: 215, p: 25, c: 4, f: 11, fiber: 0 },
+  { keywords: ['ayam goreng', 'paha ayam goreng'], name: 'Ayam Goreng Tradisional', portion: '1 potong', cal: 260, p: 24, c: 3, f: 16, fiber: 0 },
+  { keywords: ['ayam geprek'], name: 'Ayam Geprek Sambal', portion: '1 porsi ayam tepung sambal korek', cal: 340, p: 22, c: 14, f: 21, fiber: 1 },
+  { keywords: ['rendang sapi', 'rendang daging', 'rendang'], name: 'Rendang Daging Sapi', portion: '1 potong (70g)', cal: 240, p: 18, c: 6, f: 16, fiber: 1 },
+  { keywords: ['sate ayam'], name: 'Sate Ayam Bumbu Kacang', portion: '5 tusuk + bumbu', cal: 220, p: 21, c: 9, f: 11, fiber: 1.2 },
+  { keywords: ['sate kambing'], name: 'Sate Kambing', portion: '5 tusuk + kecap', cal: 260, p: 23, c: 10, f: 14, fiber: 0.5 },
+  { keywords: ['telur rebus'], name: 'Telur Ayam Rebus', portion: '1 butir (50g)', cal: 74, p: 6.3, c: 0.4, f: 5.0, fiber: 0 },
+  { keywords: ['putih telur'], name: 'Putih Telur Rebus', portion: '1 butir', cal: 17, p: 3.6, c: 0.2, f: 0.1, fiber: 0 },
+  { keywords: ['telur dadar'], name: 'Telur Dadar Goreng', portion: '1 butir', cal: 135, p: 6.5, c: 1.0, f: 11.5, fiber: 0 },
+  { keywords: ['telur ceplok', 'telur mata sapi', 'telur', 'telor'], name: 'Telur Mata Sapi / Ceplok', portion: '1 butir', cal: 115, p: 6.3, c: 0.5, f: 9.5, fiber: 0 },
+  { keywords: ['ikan nila bakar', 'ikan bakar'], name: 'Ikan Nila / Mas Bakar', portion: '1 ekor sedang (150g)', cal: 195, p: 28, c: 2, f: 8, fiber: 0 },
+  { keywords: ['ikan lele goreng', 'pecel lele', 'lele goreng'], name: 'Ikan Lele Goreng', portion: '1 ekor sedang', cal: 240, p: 22, c: 2, f: 16, fiber: 0 },
+  { keywords: ['salmon'], name: 'Ikan Salmon Panggang', portion: '100g', cal: 206, p: 22, c: 0, f: 12, fiber: 0 },
+  { keywords: ['tuna'], name: 'Ikan Tuna Kukus/Panggang', portion: '100g', cal: 130, p: 28, c: 0, f: 1.5, fiber: 0 },
+  { keywords: ['udang'], name: 'Udang Rebus / Tumis', portion: '100g (sekitar 7-8 ekor)', cal: 105, p: 21, c: 1, f: 1.5, fiber: 0 },
+  { keywords: ['cumi'], name: 'Cumi Rebus / Panggang', portion: '100g', cal: 92, p: 16, c: 3, f: 1.4, fiber: 0 },
+  { keywords: ['daging sapi', 'steak sapi'], name: 'Daging Sapi Panggang / Steak', portion: '100g', cal: 210, p: 26, c: 0, f: 12, fiber: 0 },
+  { keywords: ['bakso sapi', 'bakso urat', 'bakso'], name: 'Bakso Sapi Kuah', portion: '1 mangkok (5 butir + kuah)', cal: 285, p: 18, c: 16, f: 16, fiber: 1 },
+  { keywords: ['soto ayam'], name: 'Soto Ayam Bening', portion: '1 mangkok tanpa nasi', cal: 180, p: 16, c: 8, f: 9, fiber: 1 },
+  { keywords: ['soto betawi'], name: 'Soto Betawi Kuah Santan/Susu', portion: '1 mangkok tanpa nasi', cal: 340, p: 22, c: 9, f: 24, fiber: 1 },
+  { keywords: ['rawon'], name: 'Rawon Daging Sapi', portion: '1 mangkok tanpa nasi', cal: 260, p: 22, c: 8, f: 15, fiber: 1.2 },
+
+  // Protein Nabati
+  { keywords: ['tempe bacem', 'tempe bakar'], name: 'Tempe Bacem / Bakar', portion: '1 potong (50g)', cal: 95, p: 7.5, c: 9, f: 3.5, fiber: 2.5 },
+  { keywords: ['tempe goreng'], name: 'Tempe Goreng', portion: '1 potong (50g)', cal: 125, p: 7.0, c: 6, f: 8.5, fiber: 2 },
+  { keywords: ['tahu bacem', 'tahu kukus'], name: 'Tahu Bacem / Kukus', portion: '1 potong (60g)', cal: 65, p: 6.0, c: 4, f: 2.5, fiber: 1 },
+  { keywords: ['tahu goreng'], name: 'Tahu Goreng', portion: '1 potong (60g)', cal: 95, p: 5.5, c: 3, f: 7.0, fiber: 0.8 },
+
+  // Sayuran & Masakan Sehat
+  { keywords: ['sayur bayam', 'bayam bening', 'bayam'], name: 'Sayur Bening Bayam', portion: '1 mangkok (150g)', cal: 40, p: 2.8, c: 6, f: 0.4, fiber: 2.4 },
+  { keywords: ['sayur asem'], name: 'Sayur Asem', portion: '1 mangkok (200g)', cal: 75, p: 2.5, c: 14, f: 1.2, fiber: 3.2 },
+  { keywords: ['sayur sop', 'sop ayam'], name: 'Sayur Sop Wortel Kentang', portion: '1 mangkok', cal: 85, p: 3.5, c: 14, f: 1.8, fiber: 2.8 },
+  { keywords: ['kangkung', 'cah kangkung', 'tumis kangkung'], name: 'Tumis Kangkung', portion: '1 porsi (120g)', cal: 95, p: 3.2, c: 7, f: 6.5, fiber: 2.6 },
+  { keywords: ['sayur lodeh'], name: 'Sayur Lodeh Santan', portion: '1 mangkok', cal: 140, p: 3.5, c: 12, f: 9.0, fiber: 3 },
+  { keywords: ['daun singkong', 'gulai daun singkong'], name: 'Sayur Daun Singkong Gulai', portion: '1 porsi (100g)', cal: 125, p: 4, c: 9, f: 8.5, fiber: 3.5 },
+  { keywords: ['capcay', 'cap cay'], name: 'Capcay Sayuran', portion: '1 porsi (150g)', cal: 110, p: 4.5, c: 12, f: 5.2, fiber: 3.8 },
+  { keywords: ['gado-gado', 'gado gado'], name: 'Gado-Gado Bumbu Kacang', portion: '1 porsi sedang', cal: 320, p: 13, c: 32, f: 16, fiber: 5.5 },
+  { keywords: ['karedok', 'pecel'], name: 'Pecel / Karedok Sayur', portion: '1 porsi', cal: 260, p: 9, c: 28, f: 13, fiber: 5 },
+  { keywords: ['brokoli'], name: 'Brokoli Kukus', portion: '1 mangkok (100g)', cal: 35, p: 2.8, c: 7, f: 0.4, fiber: 2.6 },
+  { keywords: ['lalapan', 'timun', 'selada'], name: 'Lalapan Segar (Timun/Selada/Kemangi)', portion: '1 porsi', cal: 20, p: 1.0, c: 4, f: 0.2, fiber: 1.5 },
+  { keywords: ['sambal ijo', 'sambal korek', 'sambal terasi', 'sambal'], name: 'Sambal Tradisional', portion: '1-2 sdm', cal: 35, p: 0.6, c: 3.5, f: 2.2, fiber: 1 },
+
+  // Buah-buahan
+  { keywords: ['apel fuji', 'apel'], name: 'Apel Segar', portion: '1 buah sedang (150g)', cal: 85, p: 0.5, c: 21, f: 0.3, fiber: 4.0 },
+  { keywords: ['pisang ambon', 'pisang'], name: 'Pisang Segar', portion: '1 buah sedang (110g)', cal: 98, p: 1.2, c: 25, f: 0.3, fiber: 2.8 },
+  { keywords: ['alpukat'], name: 'Alpukat Segar', portion: '1/2 buah (100g)', cal: 160, p: 2.0, c: 8.5, f: 14.7, fiber: 6.7 },
+  { keywords: ['pepaya'], name: 'Pepaya Potong', portion: '1 mangkok (150g)', cal: 60, p: 0.9, c: 15, f: 0.4, fiber: 2.5 },
+  { keywords: ['semangka'], name: 'Semangka Segar', portion: '1 potong besar (200g)', cal: 60, p: 1.2, c: 15, f: 0.3, fiber: 0.8 },
+  { keywords: ['jeruk'], name: 'Jeruk Manis', portion: '1 buah', cal: 62, p: 1.2, c: 15, f: 0.2, fiber: 3.1 },
+  { keywords: ['madu'], name: 'Madu Alami', portion: '1 sdm (20g)', cal: 64, p: 0.1, c: 17, f: 0, fiber: 0 },
+
+  // Minuman & Camilan
+  { keywords: ['kopi hitam', 'americano', 'espresso'], name: 'Kopi Hitam / Americano', portion: '1 cangkir (tanpa gula)', cal: 4, p: 0.3, c: 0.5, f: 0, fiber: 0 },
+  { keywords: ['kopi susu aren', 'kopi susu gula aren', 'kopi susu'], name: 'Kopi Susu Gula Aren', portion: '1 cup (250ml)', cal: 185, p: 3.5, c: 26, f: 7.5, fiber: 0.5 },
+  { keywords: ['es teh manis', 'teh manis'], name: 'Es Teh Manis', portion: '1 gelas besar (300ml)', cal: 90, p: 0, c: 22, f: 0, fiber: 0 },
+  { keywords: ['teh tawar', 'es teh tawar'], name: 'Es Teh Tawar', portion: '1 gelas', cal: 2, p: 0, c: 0.4, f: 0, fiber: 0 },
+  { keywords: ['boba', 'boba milk tea'], name: 'Boba Milk Tea', portion: '1 cup', cal: 350, p: 3, c: 65, f: 9, fiber: 0.5 },
+  { keywords: ['susu full cream'], name: 'Susu Sapi Full Cream', portion: '1 gelas (200ml)', cal: 130, p: 6.8, c: 9.8, f: 7.0, fiber: 0 },
+  { keywords: ['susu low fat', 'susu skim'], name: 'Susu Rendah Lemak (Low Fat)', portion: '1 gelas (200ml)', cal: 90, p: 7.0, c: 10, f: 2.0, fiber: 0 },
+  { keywords: ['susu oat', 'oat milk'], name: 'Susu Oat (Oat Milk)', portion: '1 gelas (200ml)', cal: 110, p: 3.0, c: 16, f: 3.5, fiber: 2.0 },
+  { keywords: ['whey protein', 'whey'], name: 'Whey Protein Shake', portion: '1 scoop (30g)', cal: 120, p: 24, c: 2.5, f: 1.5, fiber: 0 },
+  { keywords: ['jus alpukat'], name: 'Jus Alpukat Cokelat', portion: '1 gelas', cal: 290, p: 3.5, c: 38, f: 15, fiber: 6 },
+  { keywords: ['gorengan', 'bakwan', 'bala-bala'], name: 'Gorengan Bakwan Sayur', portion: '1 buah', cal: 140, p: 2.5, c: 16, f: 7.5, fiber: 1.2 },
+  { keywords: ['tahu isi'], name: 'Tahu Isi Goreng', portion: '1 buah', cal: 135, p: 4.5, c: 12, f: 8.0, fiber: 1.5 },
+  { keywords: ['pisang goreng'], name: 'Pisang Goreng', portion: '1 buah', cal: 155, p: 1.5, c: 25, f: 6.0, fiber: 1.8 },
+  { keywords: ['martabak manis', 'terang bulan'], name: 'Martabak Manis Cokelat Keju', portion: '1 potong', cal: 270, p: 5.5, c: 38, f: 12, fiber: 1 },
+  { keywords: ['martabak telur'], name: 'Martabak Telur Daging Sapi', portion: '1 potong', cal: 190, p: 8.0, c: 11, f: 12.5, fiber: 0.8 },
+  { keywords: ['kerupuk', 'krupuk'], name: 'Kerupuk Putih', portion: '1 buah', cal: 65, p: 0.4, c: 8, f: 3.5, fiber: 0.1 },
+];
+
+function defaultNutrition() {
+  const todayStr = toISO(new Date());
+  return {
+    profile: {
+      weight: 68,
+      height: 172,
+      age: 26,
+      gender: 'male',
+      activity: 'moderate',
+      goal: 'deficit_moderate',
+      targetWeight: 63,
+    },
+    foodLogs: [
+      {
+        id: uid(),
+        date: todayStr,
+        meal: 'breakfast',
+        name: 'Oatmeal pisang madu & 2 butir telur rebus',
+        calories: 385,
+        protein: 23,
+        carbs: 52,
+        fat: 9.5,
+        notes: 'Sarapan bergizi tinggi serat & protein',
+      },
+      {
+        id: uid(),
+        date: todayStr,
+        meal: 'lunch',
+        name: 'Nasi putih 1 porsi, dada ayam bakar & sayur bayam bening',
+        calories: 490,
+        protein: 41,
+        carbs: 56,
+        fat: 10,
+        notes: 'Makan siang seimbang rendah minyak',
+      },
+      {
+        id: uid(),
+        date: todayStr,
+        meal: 'snack',
+        name: '1 buah apel fuji & kopi hitam americano',
+        calories: 85,
+        protein: 0.5,
+        carbs: 21,
+        fat: 0.3,
+        notes: 'Snack sore pengganjal lapar',
+      },
+    ],
+  };
+}
+
+/* Health calculations */
+function calcBmi(weight, height) {
+  const hM = height / 100;
+  const bmi = Math.round((weight / (hM * hM)) * 10) / 10;
+
+  let category = 'Normal';
+  let badgeClass = 'up';
+  let statusText = 'Normal / Ideal';
+  let pinPercent = 50;
+
+  if (bmi < 18.5) {
+    category = 'Underweight';
+    badgeClass = 'down';
+    statusText = 'Kekurangan Berat Badan';
+    pinPercent = Math.max(5, (bmi / 18.5) * 25);
+  } else if (bmi < 23.0) {
+    category = 'Normal';
+    badgeClass = 'up';
+    statusText = 'Ideal & Sehat';
+    pinPercent = 25 + ((bmi - 18.5) / (23.0 - 18.5)) * 25;
+  } else if (bmi < 25.0) {
+    category = 'Overweight Ringan';
+    badgeClass = 'neutral';
+    statusText = 'Kelebihan BB Ringan';
+    pinPercent = 50 + ((bmi - 23.0) / (25.0 - 23.0)) * 15;
+  } else if (bmi < 30.0) {
+    category = 'Overweight';
+    badgeClass = 'down';
+    statusText = 'Kelebihan Berat Badan';
+    pinPercent = 65 + ((bmi - 25.0) / (30.0 - 25.0)) * 20;
+  } else {
+    category = 'Obesitas';
+    badgeClass = 'down';
+    statusText = 'Obesitas (Perlu Perhatian)';
+    pinPercent = Math.min(95, 85 + ((bmi - 30.0) / 10) * 15);
+  }
+
+  const idealMin = Math.round(18.5 * hM * hM * 10) / 10;
+  const idealMax = Math.round(22.9 * hM * hM * 10) / 10;
+
+  return {
+    value: bmi,
+    category,
+    badgeClass,
+    statusText,
+    pinPercent: Math.round(pinPercent),
+    idealMin,
+    idealMax,
+  };
+}
+
+function calcBmr(weight, height, age, gender) {
+  if (gender === 'female') {
+    return Math.round(10 * weight + 6.25 * height - 5 * age - 161);
+  }
+  return Math.round(10 * weight + 6.25 * height - 5 * age + 5);
+}
+
+function calcTdee(bmr, activity) {
+  const mult = {
+    sedentary: 1.2,
+    light: 1.375,
+    moderate: 1.55,
+    very_active: 1.725,
+  }[activity] || 1.55;
+  return Math.round(bmr * mult);
+}
+
+function calcDailyLimit(profile) {
+  const bmr = calcBmr(profile.weight, profile.height, profile.age, profile.gender);
+  const tdee = calcTdee(bmr, profile.activity);
+  const goalDiff = {
+    deficit_light: -300,
+    deficit_moderate: -500,
+    deficit_aggressive: -750,
+    maintenance: 0,
+  }[profile.goal] ?? -500;
+
+  const floor = profile.gender === 'female' ? 1200 : 1400;
+  return Math.max(floor, Math.round(tdee + goalDiff));
+}
+
+function analyzeFoodWithAI(rawText, mealType = 'lunch') {
+  const query = rawText.trim().toLowerCase();
+  if (!query) return null;
+
+  const detected = [];
+  const matchedKeywords = new Set();
+
+  for (const item of FOOD_KNOWLEDGE_BASE) {
+    for (const kw of item.keywords) {
+      if (query.includes(kw) && !matchedKeywords.has(item.name)) {
+        let mult = 1.0;
+        const beforeIdx = query.indexOf(kw);
+        const snippet = query.slice(Math.max(0, beforeIdx - 15), beforeIdx + kw.length + 15);
+        if (snippet.includes('1/2') || snippet.includes('setengah') || snippet.includes('separuh')) mult = 0.5;
+        else if (snippet.includes('1/4') || snippet.includes('seperempat')) mult = 0.25;
+        else if (snippet.includes('2 ') || snippet.includes('2butir') || snippet.includes('2potong') || snippet.includes('2ekor') || snippet.includes('2lembar')) mult = 2.0;
+        else if (snippet.includes('3 ') || snippet.includes('3butir') || snippet.includes('3potong')) mult = 3.0;
+        else if (snippet.includes('4 ') || snippet.includes('4butir')) mult = 4.0;
+        else if (snippet.includes('5 ') || snippet.includes('5tusuk')) mult = 1.0;
+        else if (snippet.includes('10 ') || snippet.includes('10tusuk')) mult = 2.0;
+        else if (snippet.includes('jumbo') || snippet.includes('besar')) mult = 1.35;
+        else if (snippet.includes('kecil')) mult = 0.75;
+
+        detected.push({
+          item,
+          mult,
+          cal: Math.round(item.cal * mult),
+          p: Math.round(item.p * mult * 10) / 10,
+          c: Math.round(item.c * mult * 10) / 10,
+          f: Math.round(item.f * mult * 10) / 10,
+          fiber: Math.round(item.fiber * mult * 10) / 10,
+        });
+        matchedKeywords.add(item.name);
+        break;
+      }
+    }
+  }
+
+  // Heuristic intelligent fallback if no keywords matched
+  if (!detected.length) {
+    const isDrink = /kopi|teh|jus|susu|sirup|boba|air|smoothie|shake/.test(query);
+    const isHealthy = /rebus|kukus|bakar|salad|bening|sayur|buah|panggang|dada ayam/.test(query);
+    const isFried = /goreng|crispy|tepung|minyak|santan|gulai|lemak/.test(query);
+
+    const baseCal = isDrink ? 120 : isHealthy ? 280 : isFried ? 520 : 380;
+    const baseP = isHealthy ? 24 : 14;
+    const baseC = isDrink ? 22 : 44;
+    const baseF = isFried ? 20 : isHealthy ? 6 : 12;
+
+    detected.push({
+      item: { name: rawText.slice(0, 36), portion: '1 porsi estimasi AI' },
+      mult: 1,
+      cal: baseCal,
+      p: baseP,
+      c: baseC,
+      f: baseF,
+      fiber: 2,
+    });
+  }
+
+  const totalCal = detected.reduce((a, b) => a + b.cal, 0);
+  const totalP = Math.round(detected.reduce((a, b) => a + b.p, 0) * 10) / 10;
+  const totalC = Math.round(detected.reduce((a, b) => a + b.c, 0) * 10) / 10;
+  const totalF = Math.round(detected.reduce((a, b) => a + b.f, 0) * 10) / 10;
+  const totalFiber = Math.round(detected.reduce((a, b) => a + b.fiber, 0) * 10) / 10;
+
+  const profile = state?.nutrition?.profile || { weight: 68, height: 172, age: 26, gender: 'male', activity: 'moderate', goal: 'deficit_moderate', targetWeight: 63 };
+  const dailyTarget = calcDailyLimit(profile);
+  const pctOfDaily = Math.round((totalCal / dailyTarget) * 100);
+
+  let advice = '';
+  if (totalCal > 700) {
+    advice = `⚠️ Makanan ini tergolong padat kalori (${totalCal} kcal, memakan ~${pctOfDaily}% dari limit kalori harian Anda). ` +
+      `Disarankan untuk memilih menu makan berikutnya yang sangat ringan (seperti sup sayur bening atau dada ayam fillet kukus), serta perbanyak minum air putih.`;
+  } else if (totalP >= 28) {
+    advice = `🌟 Sangat bagus untuk program defisit kalori! Asupan tinggi protein (${totalP}g) efektif mempertahankan massa otot dan memberi rasa kenyang bertahan lama. ` +
+      `Makanan ini menyerap ~${pctOfDaily}% kuota harian (${totalCal} kcal).`;
+  } else if (totalF > 20) {
+    advice = `💡 Cukup tinggi lemak (${totalF}g), kemungkinan dari minyak goreng atau santan. ` +
+      `Untuk jam makan selanjutnya, utamakan metode masak rebus/kukus dan perbanyak serat sayuran hijau untuk memperlancar metabolisme.`;
+  } else {
+    advice = `✅ Porsi seimbang dan terkontrol (~${pctOfDaily}% dari batas kalori harian). ` +
+      `Sangat pas untuk dimasukkan ke jadwal harian Anda tanpa khawatir surplus berlebih.`;
+  }
+
+  return {
+    rawText,
+    mealType,
+    title: detected.map((d) => (d.mult !== 1 ? `${d.mult}x ` : '') + d.item.name).join(' + '),
+    breakdownText: 'Komponen terdeteksi: ' + detected.map((d) => `${d.item.name} (~${d.cal} kcal)`).join(', '),
+    calories: totalCal,
+    protein: totalP,
+    carbs: totalC,
+    fat: totalF,
+    fiber: totalFiber,
+    advice,
+    detected,
+  };
+}
+
+function generateNextMealAndActions() {
+  const profile = state?.nutrition?.profile || {
+    weight: 68, height: 172, age: 26, gender: 'male', activity: 'moderate', goal: 'deficit_moderate', targetWeight: 63,
+  };
+  const bmiInfo = calcBmi(profile.weight, profile.height);
+  const targetCal = calcDailyLimit(profile);
+
+  const activeDate = ui.nutriDate || toISO(TODAY);
+  const todaysFoods = (state?.nutrition?.foodLogs || []).filter((f) => f.date === activeDate);
+  const consumedCal = todaysFoods.reduce((a, b) => a + (Number(b.calories) || 0), 0);
+  const consumedProt = Math.round(todaysFoods.reduce((a, b) => a + (Number(b.protein) || 0), 0) * 10) / 10;
+  const remainingCal = targetCal - consumedCal;
+  const isSurplus = remainingCal < 0;
+
+  const hour = (new Date()).getHours();
+  const nextMealSlot = hour < 11 ? 'Makan Siang' : hour < 16 ? 'Camilan Sore / Makan Malam' : hour < 20 ? 'Makan Malam' : 'Camilan Ringan / Besok Pagi';
+
+  let mealOptions = [];
+  if (remainingCal >= 550) {
+    mealOptions = [
+      {
+        name: 'Dada Ayam Bakar Madu + Nasi Merah + Cah Kangkung',
+        cal: '430 kcal',
+        macros: 'Protein 38g · Karbo 42g · Lemak 9g',
+        why: 'Kombinasi karbohidrat kompleks berserat tinggi dan protein tinggi, memberikan energi stabil tanpa memicu kantuk.',
+      },
+      {
+        name: 'Ikan Nila Bakar Lalapan + Sambal Terasi + Tahu Bacem',
+        cal: '385 kcal',
+        macros: 'Protein 34g · Karbo 22g · Lemak 11g',
+        why: 'Ikan air tawar kaya asam amino dan rendah lemak jenuh. Tahu bacem menambah serat nabati.',
+      },
+      {
+        name: 'Sup Ayam Sayur Bening Wortel Kentang + Telur Rebus 2 Butir',
+        cal: '320 kcal',
+        macros: 'Protein 26g · Karbo 28g · Lemak 10g',
+        why: 'Hangat, kaya mikronutrisi dan elektrolit alami yang sangat mengenyangkan dengan kalori bersahabat.',
+      },
+    ];
+  } else if (remainingCal >= 250) {
+    mealOptions = [
+      {
+        name: 'Dada Ayam Panggang (120g) + Brokoli Kukus Bawang Putih',
+        cal: '235 kcal',
+        macros: 'Protein 36g · Karbo 8g · Lemak 4g',
+        why: 'Sangat padat protein dan minimal karbo/lemak, sempurna untuk menjaga sisa kuota kalori Anda tetap defisit.',
+      },
+      {
+        name: 'Sup Tahu Udang Bening + Jamur Tiram & Daun Bawang',
+        cal: '190 kcal',
+        macros: 'Protein 24g · Karbo 9g · Lemak 3g',
+        why: 'Volume tinggi air & serat jamur meregangkan lambung dan memberi sinyal kenyang instan ke otak.',
+      },
+      {
+        name: 'Greek Yogurt Plain (150g) + 1/2 Buah Apel & Sedikit Madu',
+        cal: '180 kcal',
+        macros: 'Protein 16g · Karbo 22g · Lemak 2.5g',
+        why: 'Kaya probiotik untuk kesehatan pencernaan dan kasein lambat cerna yang mencegah lapar malam hari.',
+      },
+    ];
+  } else {
+    mealOptions = [
+      {
+        name: 'Sayur Bening Bayam & Jagung Manis Tanpa Minyak',
+        cal: '65 kcal',
+        macros: 'Protein 3g · Karbo 12g · Lemak 0.5g',
+        why: 'Hampir nol lemak, volume besar dari sayuran hijau untuk memuaskan rasa lapar tanpa menambah beban kalori.',
+      },
+      {
+        name: '2 Butir Putih Telur Rebus + Timun Iris Garam Lada',
+        cal: '45 kcal',
+        macros: 'Protein 7.2g · Karbo 2g · Lemak 0.2g',
+        why: 'Murni asam amino bebas lemak untuk perbaikan jaringan otot saat tidur malam.',
+      },
+      {
+        name: 'Teh Chamomile / Teh Hijau Hangat + 1 Buah Pir Segar',
+        cal: '55 kcal',
+        macros: 'Protein 0.5g · Karbo 14g · Lemak 0.1g',
+        why: 'Menenangkan sistem saraf dan memberikan rasa manis alami dari buah berair tinggi serat.',
+      },
+    ];
+  }
+
+  const actionPlans = [
+    {
+      icon: '🏃‍♂️',
+      title: 'Aktivitas Fisik & Pembakaran Kalori',
+      desc: isSurplus
+        ? `Hari ini kalori Anda telah mencapai limit (${consumedCal} / ${targetCal} kcal). Tambahkan jalan cepat selama 30-40 menit (sekitar 4.000 langkah) untuk membakar ~180-220 kcal ekstra dan mengembalikan posisi tubuh ke defisit kalori.`
+        : `Pertahankan ritme harian Anda! Luangkan waktu untuk jalan santai 20-30 menit setelah makan untuk menurunkan lonjakan insulin darah dan meningkatkan sensitivitas glukosa.`,
+    },
+    {
+      icon: '💧',
+      title: 'Strategi Hidrasi & Satiety (Kenyang Lama)',
+      desc: `Targetkan minum air putih 2.2 — 2.6 Liter hari ini. Trik efektif: Minum 1 gelas air bersuhu ruang 15 menit sebelum makan berikutnya. Penelitian klinis menunjukkan trik ini menurunkan asupan kalori makan spontan hingga 13%.`,
+    },
+    {
+      icon: '🎯',
+      title: bmiInfo.category === 'Overweight' || bmiInfo.category === 'Obesitas'
+        ? 'Fokus Defisit: Konsistensi Tanpa Crash Diet'
+        : 'Menjaga Komposisi Tubuh Ideal',
+      desc: bmiInfo.category === 'Overweight' || bmiInfo.category === 'Obesitas'
+        ? `BMI Anda saat ini ${bmiInfo.value} (${bmiInfo.statusText}). Untuk menurunkan berat badan ke target ${profile.targetWeight} kg secara aman, pertahankan defisit -500 kcal/hari secara stabil. Jangan kurangi kalori terlalu ekstrem (<1.200 kcal) agar metabolisme basal tidak melambat.`
+        : `BMI Anda saat ini ${bmiInfo.value} (${bmiInfo.statusText}). Prioritaskan asupan protein harian (target minimal ~${Math.round(profile.weight * 1.5)}g/hari) dan latihan beban 3x seminggu agar tubuh kencang dan proporsional.`,
+    },
+  ];
+
+  return {
+    nextMealSlot,
+    remainingCal,
+    isSurplus,
+    mealOptions,
+    actionPlans,
+    consumedCal,
+    targetCal,
+    consumedProt,
+    todaysFoodsCount: todaysFoods.length,
   };
 }
 
@@ -132,6 +580,7 @@ function seed(currency = 'IDR') {
       { id: uid(), name: isIDR ? 'Liburan ke Jepang' : 'Japan trip', icon: '✈️', color: '#22d3ee', target: round(3500), saved: round(1250) },
       { id: uid(), name: isIDR ? 'Laptop baru' : 'New laptop', icon: '💻', color: '#a78bfa', target: round(2000), saved: round(1650) },
     ],
+    nutrition: defaultNutrition(),
   };
 }
 
@@ -197,6 +646,7 @@ function loadUserData(userId, seedIfEmpty = true) {
       if (s && Array.isArray(s.transactions)) {
         s.budgets ||= {};
         s.goals ||= [];
+        s.nutrition ||= defaultNutrition();
         if (!CURRENCIES[s.currency]) s.currency = 'IDR';
         return s;
       }
@@ -207,7 +657,7 @@ function loadUserData(userId, seedIfEmpty = true) {
     saveUserData(userId, fresh);
     return fresh;
   }
-  const empty = { currency: 'IDR', transactions: [], budgets: {}, goals: [] };
+  const empty = { currency: 'IDR', transactions: [], budgets: {}, goals: [], nutrition: defaultNutrition() };
   saveUserData(userId, empty);
   return empty;
 }
@@ -230,6 +680,9 @@ const TODAY = new Date();
 const ui = {
   view: 'overview',
   month: monthStart(TODAY),
+  nutriDate: toISO(TODAY),
+  editingFoodId: null,
+  lastAiAnalysis: null,
   filter: { q: '', type: 'all', cat: 'all', range: 'month' },
   editingId: null,
   fundGoalId: null,
@@ -579,6 +1032,273 @@ function renderPlanning() {
     : emptyState('🌱', 'Create a goal and watch your savings grow.', '<button class="btn btn-primary btn-sm" data-action="new-goal">+ Create a goal</button>');
 }
 
+/* ---------------- render: nutrition & health ---------------- */
+function renderNutrition() {
+  if (!state) return;
+  state.nutrition ||= defaultNutrition();
+  const profile = state.nutrition.profile;
+  const bmiInfo = calcBmi(profile.weight, profile.height);
+  const bmr = calcBmr(profile.weight, profile.height, profile.age, profile.gender);
+  const tdee = calcTdee(bmr, profile.activity);
+  const dailyLimit = calcDailyLimit(profile);
+
+  // Active Date string
+  const activeDate = ui.nutriDate || toISO(TODAY);
+  const isToday = activeDate === toISO(TODAY);
+  const isYesterday = activeDate === toISO(new Date(TODAY.getTime() - 86400000));
+  const dateObj = parseISO(activeDate);
+
+  // Format Date Label
+  const dateLabel = isToday
+    ? 'Hari Ini'
+    : isYesterday
+    ? 'Kemarin'
+    : dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  const dateBadge = $('#nutri-date-label');
+  if (dateBadge) dateBadge.textContent = dateLabel;
+  const datePicker = $('#nutri-date-picker');
+  if (datePicker) datePicker.value = activeDate;
+
+  // Filter food logs for active date
+  const foodLogs = (state.nutrition.foodLogs || []).filter((f) => f.date === activeDate);
+  const totalCal = foodLogs.reduce((a, b) => a + (Number(b.calories) || 0), 0);
+  const totalProt = Math.round(foodLogs.reduce((a, b) => a + (Number(b.protein) || 0), 0) * 10) / 10;
+  const totalCarb = Math.round(foodLogs.reduce((a, b) => a + (Number(b.carbs) || 0), 0) * 10) / 10;
+  const totalFat = Math.round(foodLogs.reduce((a, b) => a + (Number(b.fat) || 0), 0) * 10) / 10;
+
+  // 1. Featured Top Stat (Daily Intake & Deficit Remaining)
+  const remainingCal = dailyLimit - totalCal;
+  const isSurplus = remainingCal < 0;
+  $('#stat-nutri-intake').textContent = totalCal.toLocaleString('id-ID');
+  $('#stat-nutri-target').textContent = dailyLimit.toLocaleString('id-ID');
+
+  const statusBadge = $('#stat-nutri-status-badge');
+  if (statusBadge) {
+    statusBadge.textContent = isSurplus ? `Surplus +${Math.abs(remainingCal)} kcal` : 'Defisit Aman';
+    statusBadge.className = `delta ${isSurplus ? 'down' : 'up'}`;
+  }
+
+  const remainingNote = $('#stat-nutri-remaining-note');
+  if (remainingNote) {
+    remainingNote.textContent = isSurplus
+      ? `Melebihi target ${Math.abs(remainingCal)} kcal`
+      : `Tersisa ${remainingCal.toLocaleString('id-ID')} kcal hari ini`;
+  }
+
+  const calFill = $('#stat-calorie-fill');
+  if (calFill) {
+    const pct = Math.min(100, Math.round((totalCal / dailyLimit) * 100));
+    calFill.style.width = `${pct}%`;
+    if (isSurplus) {
+      calFill.style.background = 'linear-gradient(90deg, #fb7185, #ef4444)';
+      calFill.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.7)';
+    } else {
+      calFill.style.background = 'linear-gradient(90deg, #fb923c, #fb7185)';
+      calFill.style.boxShadow = '0 0 10px rgba(251, 146, 60, 0.6)';
+    }
+  }
+
+  // 2. BMI Card
+  $('#stat-nutri-bmi').textContent = bmiInfo.value;
+  const bmiBadge = $('#stat-bmi-badge');
+  if (bmiBadge) {
+    bmiBadge.textContent = bmiInfo.category;
+    bmiBadge.className = `delta ${bmiInfo.badgeClass}`;
+  }
+  $('#stat-bmi-sub').textContent = `BB ${profile.weight} kg · TB ${profile.height} cm`;
+  $('#stat-bmi-category-text').textContent = bmiInfo.statusText;
+
+  // 3. TDEE & Deficit Card
+  $('#stat-nutri-tdee').textContent = tdee.toLocaleString('id-ID');
+  const goalNames = {
+    deficit_moderate: '-500 kcal/hari (~0.5 kg/mgg)',
+    deficit_light: '-300 kcal/hari (~0.3 kg/mgg)',
+    deficit_aggressive: '-750 kcal/hari (~0.75 kg/mgg)',
+    maintenance: '0 kcal (Jaga Berat)',
+  };
+  $('#stat-nutri-deficit-plan').textContent = goalNames[profile.goal] || 'Defisit Kalori';
+  $('#stat-bmr-sub').textContent = `BMR: ${bmr.toLocaleString('id-ID')} kcal`;
+
+  const deficitBadge = $('#stat-deficit-badge');
+  if (deficitBadge) {
+    const diff = dailyLimit - tdee;
+    deficitBadge.textContent = diff === 0 ? 'Maintenance' : `${diff} kcal`;
+    deficitBadge.className = `delta ${diff <= 0 ? 'up' : 'down'}`;
+  }
+
+  // 4. Macro Nutrients Card
+  $('#stat-nutri-macros').textContent = `P: ${totalProt}g · C: ${totalCarb}g · L: ${totalFat}g`;
+  const targetProtein = Math.round(profile.weight * 1.6);
+  const protPct = Math.round((totalProt / targetProtein) * 100);
+  $('#stat-macro-summary').textContent = `Target protein: ~${targetProtein}g/hari (${protPct}% tercapai)`;
+  const macroStatus = $('#stat-macro-status');
+  if (macroStatus) {
+    macroStatus.textContent = protPct >= 80 ? 'Protein Optimal' : `${protPct}% Protein`;
+    macroStatus.className = `delta ${protPct >= 80 ? 'up' : 'neutral'}`;
+  }
+
+  // 5. Populate Form Inputs in Profile Card
+  const pw = $('#prof-weight'); if (pw && document.activeElement !== pw) pw.value = profile.weight;
+  const ph = $('#prof-height'); if (ph && document.activeElement !== ph) ph.value = profile.height;
+  const pa = $('#prof-age'); if (pa && document.activeElement !== pa) pa.value = profile.age;
+  const pg = $('#prof-gender'); if (pg && document.activeElement !== pg) pg.value = profile.gender;
+  const pact = $('#prof-activity'); if (pact && document.activeElement !== pact) pact.value = profile.activity;
+  const pgoal = $('#prof-goal'); if (pgoal && document.activeElement !== pgoal) pgoal.value = profile.goal;
+  const ptw = $('#prof-target-weight'); if (ptw && document.activeElement !== ptw) ptw.value = profile.targetWeight || 63;
+
+  // 6. BMI Gauge & Analysis Info
+  $('#bmi-gauge-val').textContent = `${bmiInfo.value} · ${bmiInfo.category}`;
+  const pin = $('#bmi-indicator-pin');
+  if (pin) pin.style.left = `${bmiInfo.pinPercent}%`;
+  const pinBubble = $('#bmi-pin-bubble');
+  if (pinBubble) pinBubble.textContent = `${bmiInfo.value}`;
+
+  $('#bmi-ideal-range').textContent = `${bmiInfo.idealMin} kg — ${bmiInfo.idealMax} kg`;
+  const weightDiff = Math.round((profile.weight - (profile.targetWeight || profile.weight)) * 10) / 10;
+  const diffEl = $('#bmi-weight-diff');
+  if (diffEl) {
+    if (weightDiff > 0) {
+      diffEl.textContent = `Perlu turun ${weightDiff} kg untuk capai target (${profile.targetWeight} kg)`;
+      diffEl.className = 'a-val text-cyan';
+    } else if (weightDiff < 0) {
+      diffEl.textContent = `Perlu naik ${Math.abs(weightDiff)} kg untuk capai target (${profile.targetWeight} kg)`;
+      diffEl.className = 'a-val';
+    } else {
+      diffEl.textContent = `Target berat badan tercapai (${profile.weight} kg)!`;
+      diffEl.className = 'a-val text-green';
+    }
+  }
+
+  const etaEl = $('#bmi-eta-weeks');
+  if (etaEl) {
+    if (weightDiff > 0) {
+      const rate = profile.goal === 'deficit_aggressive' ? 0.75 : profile.goal === 'deficit_light' ? 0.3 : 0.5;
+      const weeks = Math.ceil(weightDiff / rate);
+      etaEl.textContent = `~${weeks} minggu (${goalNames[profile.goal]})`;
+    } else {
+      etaEl.textContent = 'Stabil / Mode Pemeliharaan';
+    }
+  }
+  $('#bmi-daily-limit').textContent = `Maksimal ${dailyLimit.toLocaleString('id-ID')} kcal/hari`;
+
+  // 7. Render Food Logs List by Meals
+  renderFoodLogsList(foodLogs);
+
+  // 8. Render AI Next Meal & Action Plan
+  renderAiCoachSection();
+}
+
+function renderFoodLogsList(foodLogs) {
+  const meals = ['breakfast', 'lunch', 'dinner', 'snack'];
+  let totalCount = 0;
+
+  meals.forEach((meal) => {
+    const listEl = $(`#food-list-${meal}`);
+    const calEl = $(`#meal-cal-${meal}`);
+    if (!listEl) return;
+
+    const items = foodLogs.filter((f) => f.meal === meal);
+    totalCount += items.length;
+    const subCal = items.reduce((a, b) => a + (Number(b.calories) || 0), 0);
+    if (calEl) calEl.textContent = `${subCal} kcal`;
+
+    if (!items.length) {
+      listEl.innerHTML = `<li class="food-item empty-food-item" style="opacity:0.4;font-size:12px;padding:6px 10px;">Belum ada makanan dicatat</li>`;
+    } else {
+      listEl.innerHTML = items.map((f) => `
+        <li class="food-item" data-id="${f.id}">
+          <div class="food-item-meta">
+            <p class="food-item-name">${esc(f.name)}</p>
+            <div class="food-item-tags">
+              <span>P: ${f.protein || 0}g</span>
+              <span>C: ${f.carbs || 0}g</span>
+              <span>L: ${f.fat || 0}g</span>
+              ${f.notes ? `<span>· ${esc(f.notes)}</span>` : ''}
+            </div>
+          </div>
+          <div class="food-item-right">
+            <span class="food-item-cal">${f.calories} kcal</span>
+            <button type="button" class="icon-btn food-item-del" data-food-action="delete" data-id="${f.id}" title="Hapus makanan" aria-label="Hapus">${ICON.trash}</button>
+          </div>
+        </li>
+      `).join('');
+    }
+  });
+
+  const emptyEl = $('#food-log-empty');
+  const sectionsEl = $('#food-meal-sections');
+  if (emptyEl && sectionsEl) {
+    emptyEl.hidden = totalCount > 0;
+    sectionsEl.hidden = totalCount === 0;
+  }
+  const subEl = $('#food-log-sub');
+  if (subEl) {
+    const dayCal = foodLogs.reduce((a, b) => a + (Number(b.calories) || 0), 0);
+    subEl.textContent = totalCount ? `${totalCount} makanan dicatat · Total ${dayCal} kcal` : 'Belum ada konsumsi yang dicatat hari ini';
+  }
+}
+
+function renderAiCoachSection() {
+  const coachData = generateNextMealAndActions();
+
+  const ctxEl = $('#next-meal-context');
+  if (ctxEl) {
+    ctxEl.textContent = coachData.isSurplus
+      ? `Limit kalori defisit tercapai (${coachData.consumedCal} / ${coachData.targetCal} kcal). Rekomendasi menu super ringan & mengenyangkan untuk ${coachData.nextMealSlot}:`
+      : `Sisa kuota: ${coachData.remainingCal.toLocaleString('id-ID')} kcal. Rekomendasi seimbang untuk ${coachData.nextMealSlot}:`;
+  }
+
+  const subCoach = $('#coach-status-sub');
+  if (subCoach) {
+    subCoach.textContent = `Evaluasi adaptif: ${coachData.consumedCal} kcal terkonsumsi · Protein ${coachData.consumedProt}g`;
+  }
+
+  const mealContainer = $('#next-meal-suggestions');
+  if (mealContainer) {
+    mealContainer.innerHTML = coachData.mealOptions.map((opt) => `
+      <div class="next-meal-card">
+        <div class="next-meal-top">
+          <span class="next-meal-name">${esc(opt.name)}</span>
+          <span class="next-meal-cal">${esc(opt.cal)}</span>
+        </div>
+        <div class="next-meal-macro">${esc(opt.macros)}</div>
+        <p class="next-meal-why">${esc(opt.why)}</p>
+      </div>
+    `).join('');
+  }
+
+  const actionContainer = $('#action-plan-list');
+  if (actionContainer) {
+    actionContainer.innerHTML = coachData.actionPlans.map((act) => `
+      <div class="action-plan-card">
+        <span class="action-plan-icon">${act.icon}</span>
+        <div class="action-plan-content">
+          <h4 class="action-plan-title">${esc(act.title)}</h4>
+          <p class="action-plan-desc">${esc(act.desc)}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+function openFoodModal(food = null, defaultMeal = 'lunch') {
+  const d = $('#food-modal');
+  if (!d) return;
+  ui.editingFoodId = food?.id || null;
+  $('#food-modal-title').textContent = food ? 'Edit Catatan Makanan' : 'Catat Makanan Baru';
+  $('#food-form-name').value = food?.name || '';
+  $('#food-form-meal').value = food?.meal || defaultMeal;
+  $('#food-form-date').value = food?.date || ui.nutriDate || toISO(TODAY);
+  $('#food-form-cal').value = food?.calories || '';
+  $('#food-form-protein').value = food?.protein ?? '';
+  $('#food-form-carbs').value = food?.carbs ?? '';
+  $('#food-form-fat').value = food?.fat ?? '';
+  $('#food-form-notes').value = food?.notes || '';
+  $('#food-form-error').hidden = true;
+  $('#food-form-delete').hidden = !food;
+  d.showModal();
+}
+
 /* ---------------- render: shell ---------------- */
 function renderHeader() {
   if (!state) return;
@@ -611,6 +1331,7 @@ function render() {
   renderGoalsMini();
   renderTransactions();
   renderPlanning();
+  renderNutrition();
 }
 
 function setView(view) {
@@ -618,6 +1339,7 @@ function setView(view) {
   $$('.nav-item').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
   $$('.view').forEach((v) => v.classList.toggle('active', v.id === `view-${view}`));
   renderHeader();
+  if (view === 'nutrition') renderNutrition();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1009,7 +1731,243 @@ function bindEvents() {
     toast('Anda telah berhasil keluar.');
   };
   $('#sidebar-logout-btn')?.addEventListener('click', handleLogout);
-  $('#topbar-logout-btn')?.addEventListener('click', handleLogout);
+  /* ---------- Nutrition & Calorie Tracker Events ---------- */
+  // Date navigation
+  $('#nutri-prev-day')?.addEventListener('click', () => {
+    const cur = parseISO(ui.nutriDate || toISO(TODAY));
+    ui.nutriDate = toISO(new Date(cur.getTime() - 86400000));
+    renderNutrition();
+  });
+  $('#nutri-next-day')?.addEventListener('click', () => {
+    const cur = parseISO(ui.nutriDate || toISO(TODAY));
+    ui.nutriDate = toISO(new Date(cur.getTime() + 86400000));
+    renderNutrition();
+  });
+  $('#nutri-today-btn')?.addEventListener('click', () => {
+    ui.nutriDate = toISO(TODAY);
+    renderNutrition();
+    toast('Menampilkan catatan hari ini');
+  });
+  $('#nutri-date-picker')?.addEventListener('change', (e) => {
+    if (e.target.value) {
+      ui.nutriDate = e.target.value;
+      renderNutrition();
+    }
+  });
+
+  // AI Food Estimator
+  const runAiAnalysis = (customText = null) => {
+    const input = $('#ai-food-input');
+    const text = (customText !== null ? customText : input?.value || '').trim();
+    if (!text) {
+      input?.focus();
+      toast('Ketik nama makanan terlebih dahulu');
+      return;
+    }
+    const meal = $('#ai-meal-select')?.value || 'lunch';
+    const result = analyzeFoodWithAI(text, meal);
+    if (!result) return;
+
+    ui.lastAiAnalysis = result;
+    $('#ai-res-title').textContent = result.title;
+    $('#ai-res-breakdown').textContent = result.breakdownText;
+    $('#ai-res-calories').textContent = result.calories;
+    $('#ai-res-carb').textContent = `${result.carbs}g`;
+    $('#ai-res-prot').textContent = `${result.protein}g`;
+    $('#ai-res-fat').textContent = `${result.fat}g`;
+    $('#ai-res-fiber').textContent = `${result.fiber}g`;
+    $('#ai-res-advice').textContent = result.advice;
+
+    const panel = $('#ai-result-panel');
+    if (panel) {
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  };
+
+  $('#btn-run-ai-estimate')?.addEventListener('click', () => runAiAnalysis());
+
+  // Quick Preset Chips
+  $$('#quick-preset-chips .chip-food').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const text = chip.dataset.text;
+      const inp = $('#ai-food-input');
+      if (inp) inp.value = text;
+      runAiAnalysis(text);
+    });
+  });
+
+  $('#btn-ai-cancel')?.addEventListener('click', () => {
+    const panel = $('#ai-result-panel');
+    if (panel) panel.hidden = true;
+  });
+
+  // Save AI Estimate to Log
+  $('#btn-ai-save-to-log')?.addEventListener('click', () => {
+    if (!ui.lastAiAnalysis || !state) return;
+    state.nutrition ||= defaultNutrition();
+    state.nutrition.foodLogs ||= [];
+
+    const newFood = {
+      id: uid(),
+      date: ui.nutriDate || toISO(TODAY),
+      meal: ui.lastAiAnalysis.mealType || 'lunch',
+      name: ui.lastAiAnalysis.title,
+      calories: ui.lastAiAnalysis.calories,
+      protein: ui.lastAiAnalysis.protein,
+      carbs: ui.lastAiAnalysis.carbs,
+      fat: ui.lastAiAnalysis.fat,
+      notes: ui.lastAiAnalysis.breakdownText,
+    };
+
+    state.nutrition.foodLogs.push(newFood);
+    save();
+    renderNutrition();
+
+    const panel = $('#ai-result-panel');
+    if (panel) panel.hidden = true;
+    const inp = $('#ai-food-input');
+    if (inp) inp.value = '';
+    toast(`✨ ${newFood.name} (${newFood.calories} kcal) berhasil dicatat!`);
+  });
+
+  // Jump to AI from top button
+  $('#btn-jump-ai')?.addEventListener('click', () => {
+    setView('nutrition');
+    const inp = $('#ai-food-input');
+    if (inp) {
+      inp.focus();
+      inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+
+  // Open manual food modal
+  $('#btn-open-food-modal')?.addEventListener('click', () => openFoodModal(null, $('#ai-meal-select')?.value || 'lunch'));
+  $('#btn-log-add-manual')?.addEventListener('click', () => openFoodModal(null, 'lunch'));
+  $('#btn-empty-add-food')?.addEventListener('click', () => openFoodModal(null, 'lunch'));
+
+  // Food Form Submit (Save / Edit Manual)
+  $('#food-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = $('#food-form-name').value.trim();
+    const meal = $('#food-form-meal').value;
+    const date = $('#food-form-date').value || ui.nutriDate || toISO(TODAY);
+    const cal = parseFloat($('#food-form-cal').value);
+    const p = parseFloat($('#food-form-protein').value) || 0;
+    const c = parseFloat($('#food-form-carbs').value) || 0;
+    const f = parseFloat($('#food-form-fat').value) || 0;
+    const notes = $('#food-form-notes').value.trim();
+    const err = $('#food-form-error');
+
+    if (!name || isNaN(cal) || cal < 0) {
+      if (err) err.hidden = false;
+      return;
+    }
+    if (err) err.hidden = true;
+
+    state.nutrition ||= defaultNutrition();
+    state.nutrition.foodLogs ||= [];
+
+    if (ui.editingFoodId) {
+      const item = state.nutrition.foodLogs.find((x) => x.id === ui.editingFoodId);
+      if (item) {
+        Object.assign(item, { name, meal, date, calories: Math.round(cal), protein: p, carbs: c, fat: f, notes });
+        toast(`Makanan “${name}” diperbarui`);
+      }
+    } else {
+      state.nutrition.foodLogs.push({
+        id: uid(),
+        name,
+        meal,
+        date,
+        calories: Math.round(cal),
+        protein: p,
+        carbs: c,
+        fat: f,
+        notes,
+      });
+      toast(`Makanan “${name}” (${Math.round(cal)} kcal) dicatat`);
+    }
+
+    save();
+    closeModal(e.target);
+    renderNutrition();
+  });
+
+  // Food Form Delete
+  $('#food-form-delete')?.addEventListener('click', () => {
+    if (!ui.editingFoodId || !state) return;
+    const idx = state.nutrition.foodLogs.findIndex((x) => x.id === ui.editingFoodId);
+    if (idx >= 0) {
+      const [removed] = state.nutrition.foodLogs.splice(idx, 1);
+      save();
+      $('#food-modal')?.close();
+      renderNutrition();
+      toast(`Makanan “${removed.name}” dihapus`, {
+        undo: () => {
+          state.nutrition.foodLogs.splice(idx, 0, removed);
+          save();
+          renderNutrition();
+        },
+      });
+    }
+  });
+
+  // Delegated food item delete
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-food-action="delete"]');
+    if (!btn || !state?.nutrition?.foodLogs) return;
+    const id = btn.dataset.id;
+    const idx = state.nutrition.foodLogs.findIndex((x) => x.id === id);
+    if (idx >= 0) {
+      const [removed] = state.nutrition.foodLogs.splice(idx, 1);
+      save();
+      renderNutrition();
+      toast(`“${removed.name}” dihapus`, {
+        undo: () => {
+          state.nutrition.foodLogs.splice(idx, 0, removed);
+          save();
+          renderNutrition();
+        },
+      });
+    }
+  });
+
+  // Health Profile Form Submit
+  $('#health-profile-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!state) return;
+    state.nutrition ||= defaultNutrition();
+    state.nutrition.profile ||= {};
+
+    const weight = parseFloat($('#prof-weight').value) || 68;
+    const height = parseFloat($('#prof-height').value) || 172;
+    const age = parseInt($('#prof-age').value, 10) || 26;
+    const gender = $('#prof-gender').value || 'male';
+    const activity = $('#prof-activity').value || 'moderate';
+    const goal = $('#prof-goal').value || 'deficit_moderate';
+    const targetWeight = parseFloat($('#prof-target-weight').value) || (weight - 5);
+
+    state.nutrition.profile = {
+      weight,
+      height,
+      age,
+      gender,
+      activity,
+      goal,
+      targetWeight,
+    };
+
+    save();
+    renderNutrition();
+    toast('Profil fisik, BMI & limit defisit berhasil diperbarui!');
+  });
+
+  // Refresh AI Coach Plan
+  $('#btn-refresh-ai-coach')?.addEventListener('click', () => {
+    renderAiCoachSection();
+    toast('💡 Analisis & rekomendasi menu AI diperbarui!');
+  });
 
   setupCashflowHover();
 }
