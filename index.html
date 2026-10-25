@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=3.4" />
+  <link rel="stylesheet" href="styles.css?v=3.5" />
 </head>
 <body>
   <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -455,12 +455,43 @@
                     <span class="ai-spark-chip">✨ AI Nutrition Engine</span>
                     <h2 class="card-title">Deteksi Kalori &amp; Makanan AI</h2>
                   </div>
-                  <p class="card-sub">Ketik makanan yang Anda konsumsi (contoh: "1 porsi nasi padang rendang dan daun singkong", "2 telur rebus + 1 roti gandum")</p>
+                  <p class="card-sub">Unggah foto makanan Anda dan deskripsikan apa yang Anda santap untuk analisis gizi &amp; defisit kalori AI.</p>
                 </div>
               </div>
 
               <div class="ai-input-wrap">
-                <textarea id="ai-food-input" rows="3" placeholder="Tuliskan makanan/minuman yang Anda santap... (contoh: 1 porsi nasi padang rendang dan daun singkong)"></textarea>
+                <!-- Image Upload Dropzone & Preview -->
+                <div class="ai-image-upload-area" id="ai-image-upload-area">
+                  <input type="file" id="ai-food-image-input" accept="image/*" class="sr-only" aria-label="Upload Foto Makanan" />
+                  
+                  <div class="image-dropzone" id="image-dropzone" role="button" tabindex="0" title="Klik atau seret foto makanan ke sini">
+                    <div class="dropzone-icon">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                      </svg>
+                    </div>
+                    <div class="dropzone-text">
+                      <span class="dropzone-title">📷 Upload Foto Makanan (Kamera / File)</span>
+                      <span class="dropzone-sub">Klik atau seret foto makanan ke sini (JPG, PNG, WebP)</span>
+                    </div>
+                  </div>
+
+                  <div class="image-preview-bar" id="image-preview-bar" hidden>
+                    <div class="preview-thumb-wrap">
+                      <img id="image-preview-img" src="" alt="Preview makanan" />
+                    </div>
+                    <div class="preview-info">
+                      <span class="preview-badge">📸 Foto Terpilih</span>
+                      <span class="preview-name" id="image-preview-name">makanan.jpg</span>
+                    </div>
+                    <button type="button" class="icon-btn preview-remove-btn" id="btn-remove-food-img" title="Hapus foto" aria-label="Hapus foto">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <textarea id="ai-food-input" rows="3" placeholder="Deskripsikan makanan Anda... (contoh: 'Mie Gacoan: 1 porsi Mie Suit, 2 porsi Udang Keju, 1 porsi siomay' atau '1 porsi nasi padang rendang')"></textarea>
                 <div class="ai-input-controls">
                   <div class="ai-meal-choice">
                     <span class="ai-choice-label">Waktu Makan:</span>
@@ -497,9 +528,15 @@
               <!-- AI Analysis Result Card -->
               <div class="ai-result-panel" id="ai-result-panel" hidden>
                 <div class="ai-result-top">
-                  <div>
-                    <h3 class="ai-detected-title" id="ai-res-title">Nasi Padang Rendang</h3>
-                    <p class="ai-detected-items" id="ai-res-breakdown">Komponen: Nasi putih, Rendang sapi, Sayur daun singkong</p>
+                  <div class="ai-result-title-group">
+                    <div class="ai-result-thumb-box" id="ai-result-thumb-box" hidden>
+                      <img id="ai-result-thumb-img" src="" alt="Foto Makanan Teranalisis" />
+                    </div>
+                    <div>
+                      <span class="ai-source-badge" id="ai-source-badge">✨ Analisis Deskripsi &amp; Foto</span>
+                      <h3 class="ai-detected-title" id="ai-res-title">Nasi Padang Rendang</h3>
+                      <p class="ai-detected-items" id="ai-res-breakdown">Komponen: Nasi putih, Rendang sapi, Sayur daun singkong</p>
+                    </div>
                   </div>
                   <div class="ai-cal-badge">
                     <span class="ai-cal-num" id="ai-res-calories">650</span>
@@ -979,6 +1016,6 @@
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
-  <script src="app.js?v=3.4"></script>
+  <script src="app.js?v=3.5"></script>
 </body>
 </html>

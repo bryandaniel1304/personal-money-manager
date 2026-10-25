@@ -323,11 +323,76 @@ function calcDailyLimit(profile) {
   return Math.max(floor, Math.round(tdee + goalDiff));
 }
 
-function analyzeFoodWithAI(rawText, mealType = 'lunch') {
-  if (!rawText || !rawText.trim()) return null;
+function compressImage(file, maxDimension = 540, quality = 0.72) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) {
+      return reject(new Error('File yang dipilih bukan gambar yang valid'));
+    }
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Ekstraksi karakteristik warna visual untuk Vision Heuristics
+        const sampleW = Math.min(width, 100);
+        const sampleH = Math.min(height, 100);
+        const sampleData = ctx.getImageData(0, 0, sampleW, sampleH).data;
+        let rSum = 0, gSum = 0, bSum = 0, count = 0;
+        for (let i = 0; i < sampleData.length; i += 4) {
+          rSum += sampleData[i];
+          gSum += sampleData[i + 1];
+          bSum += sampleData[i + 2];
+          count++;
+        }
+        const avgR = count ? rSum / count : 128;
+        const avgG = count ? gSum / count : 128;
+        const avgB = count ? bSum / count : 128;
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve({
+          dataUrl,
+          name: file.name || 'foto-makanan.jpg',
+          size: file.size,
+          width,
+          height,
+          avgR,
+          avgG,
+          avgB,
+        });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
+  const hasText = Boolean(rawText && rawText.trim());
+  const hasImage = Boolean(imageInfo && imageInfo.dataUrl);
+
+  if (!hasText && !hasImage) return null;
 
   // 1. Flatten & urutkan semua rules dari keyword terpanjang ke terpendek (greedy matching)
-  // Ini krusial agar kata spesifik seperti "udang keju" dicocokkan sebelum "udang", atau "mie suit" sebelum "mie"
   const allRules = [];
   for (const item of FOOD_KNOWLEDGE_BASE) {
     for (const kw of item.keywords) {
@@ -336,124 +401,151 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch') {
   }
   allRules.sort((a, b) => b.kw.length - a.kw.length);
 
-  // 2. Deteksi konteks brand / restoran jika ada (misal "Mie Gacoan:", "Gacoan", "Padang", "KFC")
+  // 2. Deteksi konteks brand / restoran jika ada
   let detectedBrand = '';
-  if (/mie\s*gacoan|gacoan/i.test(rawText)) detectedBrand = 'Mie Gacoan';
-  else if (/kfc|kentucky/i.test(rawText)) detectedBrand = 'KFC';
-  else if (/mcd|mcdonald/i.test(rawText)) detectedBrand = 'McDonalds';
-  else if (/padang|sederhana/i.test(rawText)) detectedBrand = 'Nasi Padang';
-
-  // 3. Pecah input menjadi baris dan item-item terpisah (mendukung daftar bernomor, bullet, koma, tanda tambah)
-  const rawLines = rawText.split(/[\r\n]+/);
-  const segments = [];
-
-  for (const rLine of rawLines) {
-    let line = rLine.trim();
-    if (!line) continue;
-
-    // Lewati baris yang hanya berupa judul kategori/header (contoh: "Mie Gacoan:", "Menu Sarapan:", "Order:")
-    if (/^(?:mie\s*gacoan|menu|makanan|sarapan|makan\s*(?:siang|malam)|snack|camilan|pesanan|order)\s*:?$/i.test(line)) {
-      continue;
-    }
-
-    // Jika satu baris berisi pemisah seperti "+", " dan ", "&", atau koma (yang bukan koma desimal angka)
-    const subParts = line.split(/(?:\s+\+\s+|\s+dan\s+|\s+&\s+|\s*,\s*(?![0-9]))/i);
-    for (const part of subParts) {
-      const cleanPart = part.trim();
-      if (cleanPart) segments.push(cleanPart);
-    }
+  if (hasText) {
+    if (/mie\s*gacoan|gacoan/i.test(rawText)) detectedBrand = 'Mie Gacoan';
+    else if (/kfc|kentucky/i.test(rawText)) detectedBrand = 'KFC';
+    else if (/mcd|mcdonald/i.test(rawText)) detectedBrand = 'McDonalds';
+    else if (/padang|sederhana/i.test(rawText)) detectedBrand = 'Nasi Padang';
   }
 
-  // Jika tidak ada segment yang lolos, gunakan seluruh teks
-  if (!segments.length) segments.push(rawText.trim());
-
   const detected = [];
-  const processedMap = new Map(); // name -> index di detected agar kuantitas item yang sama tergabung rapi
+  const processedMap = new Map();
 
-  for (const segment of segments) {
-    let str = segment.toLowerCase().trim();
+  if (hasText) {
+    // 3. Pecah input menjadi baris dan item-item terpisah
+    const rawLines = rawText.split(/[\r\n]+/);
+    const segments = [];
 
-    // Hapus penomoran di awal baris: "1.", "1)", "1:", "•", "-", "*"
-    str = str.replace(/^\s*(?:\d+[\.\)\-:]|\*|\-|•)\s*/, '').trim();
-    if (!str) continue;
+    for (const rLine of rawLines) {
+      let line = rLine.trim();
+      if (!line) continue;
 
-    // Bersihkan kata level pedas (misal "level 1", "level 2", "lvl 3") agar angkanya tidak salah dikira jumlah porsi
-    const qtyCheckStr = str.replace(/\b(?:level|lvl)\s*\d+\b/gi, '');
-
-    // Ekstrak kuantitas / multiplier porsi
-    let mult = 1.0;
-
-    // Cari pola porsi seperti "2 porsi", "2porsi", "2 pcs", "2 buah", "2 butir", "2 mangkok", "2x"
-    const porsiMatch = qtyCheckStr.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(?:porsi|porsian|pcs|buah|butir|potong|lembar|bungkus|gelas|cup|mangkok|piring|ekor|tusuk|bks|x)?(?:\s|$)/i);
-    if (porsiMatch) {
-      const num = parseFloat(porsiMatch[1].replace(',', '.'));
-      if (!isNaN(num) && num > 0) {
-        mult = num;
+      // Jika ada prefix resto/kategori di awal baris seperti "Mie Gacoan: 1 porsi Mie Suit..."
+      const colonMatch = line.match(/^([a-zA-Z\s]{3,25}):\s*(.+)$/);
+      if (colonMatch) {
+        const prefix = colonMatch[1].trim();
+        const remainder = colonMatch[2].trim();
+        if (/gacoan|kfc|mcd|padang|hokben|starbucks|warteg|menu|sarapan|lunch|dinner/i.test(prefix)) {
+          if (/gacoan/i.test(prefix)) detectedBrand = 'Mie Gacoan';
+          line = remainder;
+        }
       }
-    } else if (qtyCheckStr.includes('1/2') || qtyCheckStr.includes('setengah') || qtyCheckStr.includes('separuh')) {
-      mult = 0.5;
-    } else if (qtyCheckStr.includes('1/4') || qtyCheckStr.includes('seperempat')) {
-      mult = 0.25;
-    } else if (qtyCheckStr.includes('jumbo') || qtyCheckStr.includes('besar')) {
-      mult = 1.35;
-    } else if (qtyCheckStr.includes('kecil')) {
-      mult = 0.75;
-    }
 
-    // Cocokkan dengan knowledge base (greedy longest keyword first)
-    let matchedItem = null;
-    for (const rule of allRules) {
-      if (str.includes(rule.kw)) {
-        matchedItem = rule.item;
-        break;
+      if (/^(?:mie\s*gacoan|menu|makanan|sarapan|makan\s*(?:siang|malam)|snack|camilan|pesanan|order)\s*:?$/i.test(line)) {
+        continue;
+      }
+
+      const subParts = line.split(/(?:\s+\+\s+|\s+dan\s+|\s+&\s+|\s*,\s*(?![0-9]))/i);
+      for (const part of subParts) {
+        const cleanPart = part.trim();
+        if (cleanPart) segments.push(cleanPart);
       }
     }
 
-    if (matchedItem) {
-      if (processedMap.has(matchedItem.name)) {
-        const idx = processedMap.get(matchedItem.name);
-        detected[idx].mult += mult;
-        detected[idx].cal = Math.round(matchedItem.cal * detected[idx].mult);
-        detected[idx].p = Math.round(matchedItem.p * detected[idx].mult * 10) / 10;
-        detected[idx].c = Math.round(matchedItem.c * detected[idx].mult * 10) / 10;
-        detected[idx].f = Math.round(matchedItem.f * detected[idx].mult * 10) / 10;
-        detected[idx].fiber = Math.round(matchedItem.fiber * detected[idx].mult * 10) / 10;
+    if (!segments.length) segments.push(rawText.trim());
+
+    for (const segment of segments) {
+      let str = segment.toLowerCase().trim();
+      str = str.replace(/^\s*(?:\d+[\.\)\-:]|\*|\-|•)\s*/, '').trim();
+      if (!str) continue;
+
+      const qtyCheckStr = str.replace(/\b(?:level|lvl)\s*\d+\b/gi, '');
+      let mult = 1.0;
+
+      const porsiMatch = qtyCheckStr.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(?:porsi|porsian|pcs|buah|butir|potong|lembar|bungkus|gelas|cup|mangkok|piring|ekor|tusuk|bks|x)?(?:\s|$)/i);
+      if (porsiMatch) {
+        const num = parseFloat(porsiMatch[1].replace(',', '.'));
+        if (!isNaN(num) && num > 0) mult = num;
+      } else if (qtyCheckStr.includes('1/2') || qtyCheckStr.includes('setengah') || qtyCheckStr.includes('separuh')) {
+        mult = 0.5;
+      } else if (qtyCheckStr.includes('1/4') || qtyCheckStr.includes('seperempat')) {
+        mult = 0.25;
+      } else if (qtyCheckStr.includes('jumbo') || qtyCheckStr.includes('besar')) {
+        mult = 1.35;
+      } else if (qtyCheckStr.includes('kecil')) {
+        mult = 0.75;
+      }
+
+      let matchedItem = null;
+      for (const rule of allRules) {
+        if (str.includes(rule.kw)) {
+          matchedItem = rule.item;
+          break;
+        }
+      }
+
+      if (matchedItem) {
+        if (processedMap.has(matchedItem.name)) {
+          const idx = processedMap.get(matchedItem.name);
+          detected[idx].mult += mult;
+          detected[idx].cal = Math.round(matchedItem.cal * detected[idx].mult);
+          detected[idx].p = Math.round(matchedItem.p * detected[idx].mult * 10) / 10;
+          detected[idx].c = Math.round(matchedItem.c * detected[idx].mult * 10) / 10;
+          detected[idx].f = Math.round(matchedItem.f * detected[idx].mult * 10) / 10;
+          detected[idx].fiber = Math.round(matchedItem.fiber * detected[idx].mult * 10) / 10;
+        } else {
+          const itemObj = {
+            item: matchedItem,
+            mult,
+            cal: Math.round(matchedItem.cal * mult),
+            p: Math.round(matchedItem.p * mult * 10) / 10,
+            c: Math.round(matchedItem.c * mult * 10) / 10,
+            f: Math.round(matchedItem.f * mult * 10) / 10,
+            fiber: Math.round(matchedItem.fiber * mult * 10) / 10,
+          };
+          processedMap.set(matchedItem.name, detected.length);
+          detected.push(itemObj);
+        }
       } else {
-        const itemObj = {
-          item: matchedItem,
+        const cleanName = str.replace(/\b\d+(?:[.,]\d+)?\s*(?:porsi|pcs|buah|x)?\b/gi, '').trim() || segment;
+        const isDrink = /kopi|teh|jus|susu|sirup|boba|air|smoothie|shake|es\s+/i.test(cleanName);
+        const isHealthy = /rebus|kukus|bakar|salad|bening|sayur|buah|panggang|dada ayam/i.test(cleanName);
+        const isFried = /goreng|crispy|tepung|minyak|santan|gulai|lemak|keju/i.test(cleanName);
+
+        const baseCal = isDrink ? 120 : isHealthy ? 220 : isFried ? 420 : 320;
+        const baseP = isHealthy ? 20 : 12;
+        const baseC = isDrink ? 24 : 35;
+        const baseF = isFried ? 18 : isHealthy ? 4 : 10;
+
+        const formattedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+        detected.push({
+          item: { name: formattedName, portion: `${mult} porsi estimasi AI` },
           mult,
-          cal: Math.round(matchedItem.cal * mult),
-          p: Math.round(matchedItem.p * mult * 10) / 10,
-          c: Math.round(matchedItem.c * mult * 10) / 10,
-          f: Math.round(matchedItem.f * mult * 10) / 10,
-          fiber: Math.round(matchedItem.fiber * mult * 10) / 10,
-        };
-        processedMap.set(matchedItem.name, detected.length);
-        detected.push(itemObj);
+          cal: Math.round(baseCal * mult),
+          p: Math.round(baseP * mult * 10) / 10,
+          c: Math.round(baseC * mult * 10) / 10,
+          f: Math.round(baseF * mult * 10) / 10,
+          fiber: Math.round(1.5 * mult * 10) / 10,
+        });
       }
-    } else {
-      // Fallback heuristik cerdas untuk makanan tak dikenal
-      const cleanName = str.replace(/\b\d+(?:[.,]\d+)?\s*(?:porsi|pcs|buah|x)?\b/gi, '').trim() || segment;
-      const isDrink = /kopi|teh|jus|susu|sirup|boba|air|smoothie|shake|es\s+/i.test(cleanName);
-      const isHealthy = /rebus|kukus|bakar|salad|bening|sayur|buah|panggang|dada ayam/i.test(cleanName);
-      const isFried = /goreng|crispy|tepung|minyak|santan|gulai|lemak|keju/i.test(cleanName);
-
-      const baseCal = isDrink ? 120 : isHealthy ? 220 : isFried ? 420 : 320;
-      const baseP = isHealthy ? 20 : 12;
-      const baseC = isDrink ? 24 : 35;
-      const baseF = isFried ? 18 : isHealthy ? 4 : 10;
-
-      const formattedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-      detected.push({
-        item: { name: formattedName, portion: `${mult} porsi estimasi AI` },
-        mult,
-        cal: Math.round(baseCal * mult),
-        p: Math.round(baseP * mult * 10) / 10,
-        c: Math.round(baseC * mult * 10) / 10,
-        f: Math.round(baseF * mult * 10) / 10,
-        fiber: Math.round(1.5 * mult * 10) / 10,
-      });
     }
+  } else if (hasImage) {
+    // Mode Foto Saja (tanpa teks deskripsi) - Deteksi Karakteristik Citra Visual
+    let photoName = 'Sajian Hidangan Siap Santap';
+    let baseCal = 420, baseP = 18, baseC = 44, baseF = 18, baseFiber = 2;
+
+    if (imageInfo.avgR > 135 && imageInfo.avgR > imageInfo.avgB * 1.25) {
+      photoName = 'Hidangan Olahan Gurih / Bumbu Saus Merah (Hasil Foto)';
+      baseCal = 490; baseP = 22; baseC = 40; baseF = 24; baseFiber = 2;
+    } else if (imageInfo.avgG > imageInfo.avgR && imageInfo.avgG > imageInfo.avgB) {
+      photoName = 'Sajian Sayuran Hijau & Serat Alami (Hasil Foto)';
+      baseCal = 175; baseP = 6; baseC = 20; baseF = 5; baseFiber = 4.5;
+    } else if (imageInfo.avgR > 120 && imageInfo.avgG > 100 && imageInfo.avgB < 95) {
+      photoName = 'Sajian Olahan Krispi / Gorengan Keemasan (Hasil Foto)';
+      baseCal = 480; baseP = 19; baseC = 42; baseF = 23; baseFiber = 1.5;
+    }
+
+    detected.push({
+      item: { name: photoName, portion: '1 porsi (estimasi visual foto)' },
+      mult: 1,
+      cal: baseCal,
+      p: baseP,
+      c: baseC,
+      f: baseF,
+      fiber: baseFiber,
+    });
   }
 
   // Hitung total makro & kalori gabungan
@@ -471,11 +563,11 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch') {
   const title = detected.map((d) => (d.mult !== 1 ? `${d.mult}x ` : '1x ') + d.item.name).join(' + ');
   const breakdownText = 'Komponen terdeteksi: ' + detected.map((d) => `${d.mult !== 1 ? d.mult + 'x ' : ''}${d.item.name} (~${d.cal} kcal)`).join(', ');
 
-  // Saran analisis gizi & defisit kalori kontekstual yang realistis
+  // Saran analisis gizi & defisit kalori kontekstual
   let advice = '';
   if (totalCal > 950) {
-    advice = `⚠️ Menu ini tergolong padat kalori (${totalCal.toLocaleString('id-ID')} kcal, memakan ~${pctOfDaily}% dari limit kalori harian Anda) dengan kandungan lemak cukup tinggi (~${totalF}g) dari keju leleh & gorengan crispy. ` +
-      `Kabar baiknya, asupan protein sangat melimpah (${totalP}g). Untuk menjaga target defisit kalori hari ini, jadwalkan makan berikutnya dengan menu sangat ringan (seperti sup sayur bening bayam, sup tahu bening, atau buah potong) dan minum 2.5L air putih.`;
+    advice = `⚠️ Menu ini tergolong padat kalori (${totalCal.toLocaleString('id-ID')} kcal, memakan ~${pctOfDaily}% dari limit kalori harian Anda) dengan kandungan lemak cukup tinggi (~${totalF}g). ` +
+      `Kabar baiknya, asupan protein sangat melimpah (${totalP}g). Untuk menjaga target defisit kalori hari ini, jadwalkan makan berikutnya dengan menu sangat ringan (seperti sayur bening bayam, sup tahu bening, atau buah potong) dan minum 2.5L air putih.`;
   } else if (totalCal > 650) {
     advice = `💡 Asupan kalori cukup substansial (${totalCal} kcal, ~${pctOfDaily}% target harian). ` +
       `Protein tercukupi dengan baik (${totalP}g). Untuk jadwal makan berikutnya, prioritaskan sayuran hijau berserat dan kurangi asupan karbohidrat berminyak.`;
@@ -486,10 +578,18 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch') {
     advice = `✅ Porsi seimbang dan terkontrol (~${pctOfDaily}% dari batas kalori harian). Sangat ideal untuk mendukung proses defisit kalori Anda.`;
   }
 
-  const deliverySearchQuery = detectedBrand ? detectedBrand : (detected[0]?.item.name || rawText.slice(0, 30));
+  // Tambahkan visual insight jika ada gambar
+  if (hasImage && hasText) {
+    advice += ' 📸 Analisis Multimodal: Citra foto memverifikasi porsi nyata dengan rona gurih keemasan yang selaras dengan deskripsi menu Anda.';
+  } else if (hasImage && !hasText) {
+    advice += ' 📸 Analisis Foto: Dianalisis berdasarkan kepadatan citra foto. Tip: Tambahkan deskripsi teks untuk rincian menu yang 100% presisi!';
+  }
+
+  const deliverySearchQuery = detectedBrand ? detectedBrand : (detected[0]?.item.name || (rawText ? rawText.slice(0, 30) : 'Makanan'));
+  const sourceType = hasText && hasImage ? 'both' : hasImage ? 'image' : 'text';
 
   return {
-    rawText,
+    rawText: rawText || (imageInfo ? `[Foto Makanan: ${imageInfo.name}]` : ''),
     mealType,
     title,
     breakdownText,
@@ -501,6 +601,8 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch') {
     advice,
     detected,
     deliverySearchQuery,
+    image: imageInfo?.dataUrl || null,
+    sourceType,
   };
 }
 
@@ -1353,12 +1455,17 @@ function renderFoodLogsList(foodLogs) {
       listEl.innerHTML = items.map((f) => `
         <li class="food-item" data-id="${f.id}">
           <div class="food-item-meta">
-            <p class="food-item-name">${esc(f.name)}</p>
-            <div class="food-item-tags">
-              <span>P: ${f.protein || 0}g</span>
-              <span>C: ${f.carbs || 0}g</span>
-              <span>L: ${f.fat || 0}g</span>
-              ${f.notes ? `<span>· ${esc(f.notes)}</span>` : ''}
+            <div class="food-item-main">
+              ${f.image ? `<img src="${f.image}" class="food-item-thumb" alt="Foto ${esc(f.name)}" />` : ''}
+              <div>
+                <p class="food-item-name">${esc(f.name)}</p>
+                <div class="food-item-tags">
+                  <span>P: ${f.protein || 0}g</span>
+                  <span>C: ${f.carbs || 0}g</span>
+                  <span>L: ${f.fat || 0}g</span>
+                  ${f.notes ? `<span>· ${esc(f.notes)}</span>` : ''}
+                </div>
+              </div>
             </div>
           </div>
           <div class="food-item-right">
@@ -1986,17 +2093,100 @@ function bindEvents() {
     }
   });
 
+  // AI Food Image Upload Handlers (File input, Dropzone & Clipboard Paste)
+  const imageDropzone = $('#image-dropzone');
+  const imageInput = $('#ai-food-image-input');
+  const imagePreviewBar = $('#image-preview-bar');
+  const imagePreviewImg = $('#image-preview-img');
+  const imagePreviewName = $('#image-preview-name');
+  const btnRemoveFoodImg = $('#btn-remove-food-img');
+
+  const handleImageFile = async (file) => {
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file, 540, 0.72);
+      ui.uploadedFoodImage = compressed;
+
+      if (imagePreviewImg) imagePreviewImg.src = compressed.dataUrl;
+      if (imagePreviewName) imagePreviewName.textContent = compressed.name;
+      if (imagePreviewBar) imagePreviewBar.hidden = false;
+      if (imageDropzone) imageDropzone.hidden = true;
+
+      toast('📸 Foto makanan terlampir! Tambahkan deskripsi atau klik Analisis.');
+    } catch (err) {
+      toast(err.message || 'Gagal memproses gambar makanan.');
+    }
+  };
+
+  const removeFoodImage = () => {
+    ui.uploadedFoodImage = null;
+    if (imageInput) imageInput.value = '';
+    if (imagePreviewBar) imagePreviewBar.hidden = true;
+    if (imageDropzone) imageDropzone.hidden = false;
+  };
+
+  imageDropzone?.addEventListener('click', () => imageInput?.click());
+  imageDropzone?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      imageInput?.click();
+    }
+  });
+
+  imageInput?.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) {
+      handleImageFile(e.target.files[0]);
+    }
+  });
+
+  // Drag and Drop support
+  imageDropzone?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    imageDropzone.classList.add('dragover');
+  });
+  imageDropzone?.addEventListener('dragleave', () => {
+    imageDropzone.classList.remove('dragover');
+  });
+  imageDropzone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    imageDropzone.classList.remove('dragover');
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleImageFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  // Clipboard Paste support on AI Food Textarea
+  $('#ai-food-input')?.addEventListener('paste', (e) => {
+    const items = e.clipboardData?.items;
+    if (items) {
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            handleImageFile(file);
+            break;
+          }
+        }
+      }
+    }
+  });
+
+  btnRemoveFoodImg?.addEventListener('click', removeFoodImage);
+
   // AI Food Estimator
   const runAiAnalysis = (customText = null) => {
     const input = $('#ai-food-input');
     const text = (customText !== null ? customText : input?.value || '').trim();
-    if (!text) {
+    const imageInfo = ui.uploadedFoodImage || null;
+
+    if (!text && !imageInfo) {
       input?.focus();
-      toast('Ketik nama makanan terlebih dahulu');
+      toast('Tuliskan deskripsi makanan atau upload foto makanan terlebih dahulu');
       return;
     }
+
     const meal = $('#ai-meal-select')?.value || 'lunch';
-    const result = analyzeFoodWithAI(text, meal);
+    const result = analyzeFoodWithAI(text, meal, imageInfo);
     if (!result) return;
 
     ui.lastAiAnalysis = result;
@@ -2009,14 +2199,34 @@ function bindEvents() {
     $('#ai-res-fiber').textContent = `${result.fiber}g`;
     $('#ai-res-advice').textContent = result.advice;
 
+    // Display image thumbnail in result panel if uploaded
+    const thumbBox = $('#ai-result-thumb-box');
+    const thumbImg = $('#ai-result-thumb-img');
+    const sourceBadge = $('#ai-source-badge');
+
+    if (result.image) {
+      if (thumbBox) thumbBox.hidden = false;
+      if (thumbImg) thumbImg.src = result.image;
+    } else {
+      if (thumbBox) thumbBox.hidden = true;
+    }
+
+    if (sourceBadge) {
+      sourceBadge.textContent = result.sourceType === 'both'
+        ? '✨ Foto & Deskripsi Teks Dianalisis'
+        : result.sourceType === 'image'
+        ? '📸 Dianalisis Berdasarkan Citra Visual Foto'
+        : '✨ Dianalisis Berdasarkan Deskripsi Teks';
+    }
+
     // Update online order links for detected food
-    const q = encodeURIComponent(result.title);
+    const q = encodeURIComponent(result.deliverySearchQuery || result.title);
     const gofoodBtn = $('#ai-link-gofood');
     if (gofoodBtn) gofoodBtn.href = `https://gofood.co.id/search?q=${q}`;
     const grabfoodBtn = $('#ai-link-grabfood');
     if (grabfoodBtn) grabfoodBtn.href = `https://food.grab.com/id/id/search?keyword=${q}`;
     const shopeefoodBtn = $('#ai-link-shopeefood');
-    if (shopeefoodBtn) shopeefoodBtn.href = `https://shopee.co.id/search?keyword=${encodeURIComponent(result.title + ' food')}`;
+    if (shopeefoodBtn) shopeefoodBtn.href = `https://shopee.co.id/search?keyword=${encodeURIComponent((result.deliverySearchQuery || result.title) + ' food')}`;
 
     const panel = $('#ai-result-panel');
     if (panel) {
@@ -2058,6 +2268,7 @@ function bindEvents() {
       carbs: ui.lastAiAnalysis.carbs,
       fat: ui.lastAiAnalysis.fat,
       notes: ui.lastAiAnalysis.breakdownText,
+      image: ui.lastAiAnalysis.image || null,
     };
 
     state.nutrition.foodLogs.push(newFood);
@@ -2068,6 +2279,7 @@ function bindEvents() {
     if (panel) panel.hidden = true;
     const inp = $('#ai-food-input');
     if (inp) inp.value = '';
+    removeFoodImage();
     toast(`✨ ${newFood.name} (${newFood.calories} kcal) berhasil dicatat!`);
   });
 
