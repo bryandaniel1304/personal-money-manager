@@ -108,6 +108,356 @@ const FOOD_KNOWLEDGE_BASE = [
   { keywords: ['pangsit goreng gacoan', 'pangsit goreng'], name: 'Pangsit Goreng Gacoan', portion: '1 porsi (3 pcs pangsit goreng)', cal: 270, p: 10, c: 24, f: 15, fiber: 1.0 },
   { keywords: ['lumpia udang', 'lumpia gacoan'], name: 'Lumpia Udang Gacoan', portion: '1 porsi (3 pcs)', cal: 260, p: 13, c: 18, f: 15, fiber: 0.8 },
   { keywords: ['es gobak sodor', 'es teklek', 'es sluku bathok', 'es petak umpet'], name: 'Es Segar Gacoan', portion: '1 cup', cal: 195, p: 1, c: 46, f: 1, fiber: 0.5 },
+
+  // Menu Spesifik SEC Bowl (Rice Bowl Populer Teruji Lab Beeru Indonesia)
+  {
+    keywords: [
+      'sec bowl salted egg chicken original',
+      'sec bowl salted egg original',
+      'sec bowl salted egg chicken',
+      'sec bowl original',
+      'sec bowl salted egg',
+      'secbowl salted egg',
+      'secbowl original',
+      'sec bowl',
+      'secbowl'
+    ],
+    name: 'SEC Bowl Salted Egg Chicken Original',
+    portion: '1 bowl reguler lengkap (nasi, ayam crispy, saus salted egg, telur)',
+    cal: 843,
+    p: 36.0,
+    c: 88.0,
+    f: 39.0,
+    fiber: 1.8,
+    notes: 'Teruji Lab Beeru Indonesia (842.6 kkal): Nasi putih (~265 kcal) + Ayam crispy (~310 kcal) + Saus salted egg mentega gurih (~180 kcal) + Telur ceplok (~88 kcal)'
+  },
+  {
+    keywords: ['sec bowl lite', 'secbowl lite', 'salted egg lite sec bowl'],
+    name: 'SEC Bowl Salted Egg Chicken (Ukuran LITE)',
+    portion: '1 bowl porsi LITE',
+    cal: 520,
+    p: 25.0,
+    c: 54.0,
+    f: 22.0,
+    fiber: 1.5,
+    notes: 'Varian LITE: Porsi nasi dan takaran saus dikurangi khusus untuk defisit kalori'
+  },
+  {
+    keywords: ['sec bowl kungpao', 'secbowl kungpao', 'sec bowl kung pao'],
+    name: 'SEC Bowl Kung Pao Chicken',
+    portion: '1 bowl lengkap',
+    cal: 680,
+    p: 32.0,
+    c: 78.0,
+    f: 26.0,
+    fiber: 2.5
+  },
+  {
+    keywords: ['sec bowl spicy caramel', 'secbowl spicy caramel'],
+    name: 'SEC Bowl Spicy Caramel Chicken',
+    portion: '1 bowl lengkap',
+    cal: 720,
+    p: 30.0,
+    c: 86.0,
+    f: 27.0,
+    fiber: 2.0
+  },
+  {
+    keywords: ['sec bowl rendang', 'secbowl rendang', 'sec bowl render beef', 'secbowl render beef'],
+    name: 'SEC Bowl Render Beef (Rendang)',
+    portion: '1 bowl lengkap',
+    cal: 750,
+    p: 34.0,
+    c: 80.0,
+    f: 32.0,
+    fiber: 3.0
+  },
+  {
+    keywords: ['sec bowl black pepper', 'secbowl black pepper'],
+    name: 'SEC Bowl Black Pepper Chicken',
+    portion: '1 bowl lengkap',
+    cal: 660,
+    p: 31.0,
+    c: 75.0,
+    f: 26.0,
+    fiber: 2.0
+  },
+
+  // Rice Bowl & Salted Egg Populer Lainnya
+  {
+    keywords: ['eatlah salted egg chicken', 'eatlah salted egg', 'eatlah'],
+    name: 'Eatlah Salted Egg Chicken Rice Bowl',
+    portion: '1 box reguler lengkap',
+    cal: 820,
+    p: 35.0,
+    c: 84.0,
+    f: 38.0,
+    fiber: 1.5,
+    notes: 'Nasi putih + Ayam fillet krispi + Saus salted egg mentega gurih + Telur mata sapi'
+  },
+  {
+    keywords: ['rice bowl salted egg', 'salted egg chicken rice bowl', 'nasi salted egg', 'ayam salted egg', 'salted egg chicken', 'salted egg bowl'],
+    name: 'Salted Egg Chicken Rice Bowl Komplit',
+    portion: '1 bowl/box lengkap (nasi, ayam krispi, saus salted egg, telur)',
+    cal: 810,
+    p: 34.0,
+    c: 82.0,
+    f: 37.0,
+    fiber: 1.5,
+    notes: 'Standar resto: Nasi putih (~250 kcal) + Ayam krispi (~290 kcal) + Saus salted egg butter (~185 kcal) + Telur ceplok (~85 kcal)'
+  },
+  {
+    keywords: ['yoshinoya original beef bowl', 'yoshinoya beef bowl', 'yoshinoya original', 'yoshinoya'],
+    name: 'Yoshinoya Original Beef Bowl',
+    portion: '1 mangkok porsi reguler',
+    cal: 670,
+    p: 23.0,
+    c: 75.0,
+    f: 32.0,
+    fiber: 2.0,
+    notes: 'Nasi putih jepang + iris daging sapi US beef simmered onion broth'
+  },
+  {
+    keywords: ['yoshinoya yakiniku beef bowl', 'yoshinoya yakiniku'],
+    name: 'Yoshinoya Yakiniku Beef Bowl',
+    portion: '1 mangkok porsi reguler',
+    cal: 710,
+    p: 22.0,
+    c: 84.0,
+    f: 32.0,
+    fiber: 2.0,
+    notes: 'Nasi putih jepang + daging sapi saus yakiniku manis gurih'
+  },
+  {
+    keywords: ['hokben simple set', 'hokben bento', 'hokben paket', 'hokben'],
+    name: 'HokBen Bento Simple Set Komplit',
+    portion: '1 set lengkap nasi + teriyaki/yakiniku + gorengan + salad mayo',
+    cal: 730,
+    p: 26.0,
+    c: 85.0,
+    f: 32.0,
+    fiber: 3.0
+  },
+  {
+    keywords: ['moon chicken rice bowl', 'moon chicken'],
+    name: 'Moon Chicken Rice Bowl Korea',
+    portion: '1 bowl lengkap',
+    cal: 720,
+    p: 30.0,
+    c: 76.0,
+    f: 32.0,
+    fiber: 2.0
+  },
+  {
+    keywords: ['chicken katsu curry', 'katsu curry'],
+    name: 'Chicken Katsu Curry Rice',
+    portion: '1 porsi piring',
+    cal: 780,
+    p: 32.0,
+    c: 92.0,
+    f: 32.0,
+    fiber: 3.5
+  },
+  {
+    keywords: ['salmon mentai rice', 'salmon mentai', 'mentai rice'],
+    name: 'Salmon Mentai Rice',
+    portion: '1 porsi (nasi butter + salmon panggang + saus mentai mayo torched)',
+    cal: 650,
+    p: 28.0,
+    c: 65.0,
+    f: 31.0,
+    fiber: 1.5
+  },
+  {
+    keywords: ['kfc super besar 1', 'kfc super besar', 'kfc nasi ayam', 'paket kfc'],
+    name: 'KFC Paket Nasi + Ayam Crispy',
+    portion: '1 potong ayam crispy + nasi putih',
+    cal: 680,
+    p: 33.0,
+    c: 65.0,
+    f: 32.0,
+    fiber: 1.5
+  },
+  {
+    keywords: ['mcd panas 1', 'mcd panas', 'mcd nasi ayam'],
+    name: 'McDonalds PaNas 1 (Nasi + Ayam Crispy)',
+    portion: '1 potong ayam crispy + nasi putih',
+    cal: 660,
+    p: 32.0,
+    c: 64.0,
+    f: 31.0,
+    fiber: 1.5
+  },
+  {
+    keywords: ['mcd big mac', 'big mac'],
+    name: 'McDonalds Big Mac',
+    portion: '1 burger',
+    cal: 550,
+    p: 25.0,
+    c: 45.0,
+    f: 30.0,
+    fiber: 3.0
+  },
+  {
+    keywords: ['burger king whopper', 'whopper'],
+    name: 'Burger King Whopper',
+    portion: '1 burger',
+    cal: 660,
+    p: 28.0,
+    c: 49.0,
+    f: 40.0,
+    fiber: 3.0
+  },
+  {
+    keywords: ['nasi bebek madura', 'bebek madura', 'bebek goreng'],
+    name: 'Nasi Bebek Goreng Bumbu Hitam Madura',
+    portion: '1 porsi nasi + bebek goreng rempah hitam gurih pedas',
+    cal: 760,
+    p: 32.0,
+    c: 65.0,
+    f: 42.0,
+    fiber: 1.5
+  },
+  {
+    keywords: ['nasi gila'],
+    name: 'Nasi Gila Komplit',
+    portion: '1 porsi nasi + tumisan sosis bakso telur sawi',
+    cal: 580,
+    p: 22.0,
+    c: 72.0,
+    f: 24.0,
+    fiber: 2.5
+  },
+  {
+    keywords: ['nasi hainan komplit', 'nasi hainan'],
+    name: 'Nasi Hainan Ayam Komplit',
+    portion: '1 porsi nasi minyak hainan + ayam rebus gurih',
+    cal: 610,
+    p: 28.0,
+    c: 66.0,
+    f: 26.0,
+    fiber: 1.8
+  },
+  {
+    keywords: ['nasi bakar ayam', 'nasi bakar'],
+    name: 'Nasi Bakar Ayam Kemangi',
+    portion: '1 bungkus nasi bakar isi suwir ayam',
+    cal: 480,
+    p: 23.0,
+    c: 60.0,
+    f: 17.0,
+    fiber: 2.5
+  },
+  {
+    keywords: ['mie ayam bakso', 'mie ayam komplit', 'mie ayam'],
+    name: 'Mie Ayam Bakso & Pangsit',
+    portion: '1 mangkok mie ayam + 2 butir bakso + pangsit',
+    cal: 520,
+    p: 22.0,
+    c: 68.0,
+    f: 19.0,
+    fiber: 2.8
+  },
+  {
+    keywords: ['kwetiau goreng sapi', 'kwetiau sapi'],
+    name: 'Kwetiau Goreng Daging Sapi',
+    portion: '1 piring sedang',
+    cal: 640,
+    p: 24.0,
+    c: 74.0,
+    f: 28.0,
+    fiber: 2.5
+  },
+  {
+    keywords: ['bihun goreng'],
+    name: 'Bihun Goreng Ayam Sayur',
+    portion: '1 piring sedang',
+    cal: 480,
+    p: 14.0,
+    c: 66.0,
+    f: 18.0,
+    fiber: 2.2
+  },
+  {
+    keywords: ['sate taichan'],
+    name: 'Sate Taichan Ayam',
+    portion: '1 porsi (10 tusuk dada ayam tanpa minyak + sambal)',
+    cal: 210,
+    p: 36.0,
+    c: 3.0,
+    f: 6.0,
+    fiber: 0.5
+  },
+  {
+    keywords: ['pasta spaghetti carbonara', 'spaghetti carbonara', 'carbonara'],
+    name: 'Spaghetti Carbonara Creamy',
+    portion: '1 porsi pasta krim telur keju daging asap',
+    cal: 620,
+    p: 22.0,
+    c: 65.0,
+    f: 31.0,
+    fiber: 2.5
+  },
+  {
+    keywords: ['pasta spaghetti bolognese', 'spaghetti bolognese', 'bolognese'],
+    name: 'Spaghetti Bolognese Daging Sapi',
+    portion: '1 porsi pasta saus tomat daging cincang',
+    cal: 460,
+    p: 21.0,
+    c: 62.0,
+    f: 14.0,
+    fiber: 3.5
+  },
+  {
+    keywords: ['pizza', 'pizza pan'],
+    name: 'Pizza Keju & Daging',
+    portion: '1 slice (pan pizza sedang)',
+    cal: 280,
+    p: 12.0,
+    c: 32.0,
+    f: 12.0,
+    fiber: 1.5
+  },
+  {
+    keywords: ['kopi kenangan mantan', 'kopi kenangan'],
+    name: 'Kopi Kenangan Mantan (Kopi Susu Gula Aren)',
+    portion: '1 cup reguler',
+    cal: 190,
+    p: 3.5,
+    c: 27.0,
+    f: 7.5,
+    fiber: 0.5
+  },
+  {
+    keywords: ['chatime milk tea with pearl', 'chatime pearl milk tea', 'chatime milk tea', 'chatime'],
+    name: 'Chatime Milk Tea with Pearl (Boba)',
+    portion: '1 cup reguler',
+    cal: 340,
+    p: 3.0,
+    c: 62.0,
+    f: 9.0,
+    fiber: 0.5
+  },
+  {
+    keywords: ['mixue boba sundae'],
+    name: 'Mixue Boba Sundae',
+    portion: '1 cup sundae',
+    cal: 280,
+    p: 4.2,
+    c: 48.0,
+    f: 8.0,
+    fiber: 0.5
+  },
+  {
+    keywords: ['mixue ice cream cone', 'mixue cone', 'mixue ice cream'],
+    name: 'Mixue Ice Cream Cone',
+    portion: '1 cone vanila',
+    cal: 160,
+    p: 3.0,
+    c: 26.0,
+    f: 5.0,
+    fiber: 0.2
+  },
   { keywords: ['seblak komplit', 'seblak'], name: 'Seblak Komplit', portion: '1 mangkok sedang', cal: 460, p: 16, c: 56, f: 19, fiber: 2.2 },
   { keywords: ['batagor'], name: 'Batagor Bumbu Kacang', portion: '1 porsi', cal: 390, p: 14, c: 41, f: 19, fiber: 2.8 },
   { keywords: ['pempek kapal selam', 'pempek'], name: 'Pempek Kapal Selam + Cuko', portion: '1 buah besar isi telur', cal: 325, p: 16, c: 38, f: 12, fiber: 1.0 },
@@ -386,6 +736,194 @@ function compressImage(file, maxDimension = 540, quality = 0.72) {
   });
 }
 
+/* Sintesis Semantik Nutrisi Kuliner untuk Makanan di Luar Database */
+function estimateUnknownFoodNutrients(rawFoodName, mult = 1.0) {
+  const str = (rawFoodName || '').toLowerCase().trim();
+
+  // 1. Minuman / Beverage
+  const isDrink = /kopi|teh|jus|juice|susu|milk|sirup|syrup|boba|latte|americano|cappuccino|macchiato|shake|smoothie|frappe|soda|cola|sprite|fanta|air\s*putih|air\s*mineral|mineral|mocktail|cocktail/i.test(str);
+  if (isDrink) {
+    let cal = 140, p = 2, c = 28, f = 3, fiber = 0;
+    let note = 'Minuman manis olahan';
+    if (/air\s*putih|air\s*mineral|air\s*kelapa|teh\s*tawar|es\s*teh\s*tawar|kopi\s*hitam|americano/i.test(str)) {
+      cal = 5; p = 0.2; c = 0.8; f = 0; fiber = 0;
+      note = 'Minuman tanpa gula / kalori netral';
+    } else if (/boba|pearl|brown\s*sugar|frappe|caramel|avocado\s*shake|chocolate|cokelat/i.test(str)) {
+      cal = 340; p = 3.5; c = 62; f = 9; fiber = 0.5;
+      note = 'Minuman boba / manis berkalori tinggi';
+    } else if (/jus|juice/i.test(str)) {
+      const isAlpukat = /alpukat/i.test(str);
+      cal = isAlpukat ? 280 : 130;
+      p = 1.5; c = 26; f = isAlpukat ? 14 : 0.5; fiber = 3;
+      note = isAlpukat ? 'Jus buah alpukat padat energi & lemak nabati' : 'Jus buah segar';
+    } else if (/kopi|latte|cappuccino/i.test(str)) {
+      const isSweet = /gula|aren|sweet|manis/i.test(str);
+      cal = isSweet ? 185 : 95;
+      p = 4; c = isSweet ? 26 : 8; f = 6; fiber = 0;
+      note = isSweet ? 'Kopi susu rasa manis gula aren' : 'Kopi susu reguler';
+    }
+    return {
+      cal: Math.round(cal * mult),
+      p: Math.round(p * mult * 10) / 10,
+      c: Math.round(c * mult * 10) / 10,
+      f: Math.round(f * mult * 10) / 10,
+      fiber: Math.round(fiber * mult * 10) / 10,
+      breakdownNote: note,
+    };
+  }
+
+  // 2. Dekonstruksi Komponen Hidangan / Rice Bowl / Porsi Lengkap
+  let totalCal = 0, totalP = 0, totalC = 0, totalF = 0, totalFiber = 0;
+  const components = [];
+
+  // Alas Karbohidrat (Starch Base)
+  const isRiceBowl = /bowl|ricebox|rice\s*box|bento|donburi|paket\s*nasi/i.test(str);
+  const isNasi = /nasi|rice|ketupat|lontong/i.test(str) || isRiceBowl;
+  const isNoodle = /mie|mi\s+|bihun|kwetiau|spaghetti|pasta|ramen|udon|fettuccine|soba/i.test(str);
+  const isBread = /burger|sandwich|roti|toast|hotdog|wrap|kebab|croissant/i.test(str);
+
+  if (isRiceBowl) {
+    totalCal += 265; totalP += 5; totalC += 58; totalF += 0.8; totalFiber += 0.8;
+    components.push('Nasi Putih Porsi Bowl (~265 kcal)');
+  } else if (isNasi) {
+    if (/uduk|kuning|liwet|gurih/i.test(str)) {
+      totalCal += 260; totalP += 5; totalC += 43; totalF += 8; totalFiber += 0.8;
+      components.push('Nasi Gurih Berlemak (~260 kcal)');
+    } else if (/goreng|nasgor/i.test(str)) {
+      totalCal += 350; totalP += 8; totalC += 52; totalF += 13; totalFiber += 1.2;
+      components.push('Nasi Goreng Base (~350 kcal)');
+    } else {
+      totalCal += 204; totalP += 4.2; totalC += 45; totalF += 0.4; totalFiber += 0.6;
+      components.push('Nasi Putih Standar (~204 kcal)');
+    }
+  } else if (isNoodle) {
+    if (/goreng/i.test(str)) {
+      totalCal += 360; totalP += 7; totalC += 52; totalF += 14; totalFiber += 1.5;
+      components.push('Mie Goreng Gurih (~360 kcal)');
+    } else {
+      totalCal += 220; totalP += 5; totalC += 44; totalF += 2.5; totalFiber += 1.5;
+      components.push('Olahan Mie/Pasta (~220 kcal)');
+    }
+  } else if (isBread) {
+    totalCal += 220; totalP += 6; totalC += 35; totalF += 5; totalFiber += 2;
+    components.push('Roti/Bun/Wrap (~220 kcal)');
+  }
+
+  // Protein Utama
+  const hasAyam = /ayam|chicken|chick/i.test(str);
+  const hasSapi = /sapi|beef|daging|meat|steak|rendang/i.test(str);
+  const hasSeafood = /udang|shrimp|prawn|cumi|squid|ikan|fish|salmon|tuna|dori/i.test(str);
+  const hasBebek = /bebek|duck/i.test(str);
+  const hasBabi = /babi|pork|bacon/i.test(str);
+  const hasTahuTempe = /tahu|tempe|tofu/i.test(str);
+
+  const isCrispy = /crispy|krispi|tepung|goreng|fried|popcorn|karage|katsu/i.test(str);
+  const isGrilled = /bakar|panggang|grilled|roast/i.test(str);
+  const isBoiled = /rebus|kukus|steam|bening|soup|sop/i.test(str);
+
+  if (hasAyam || (!hasSapi && !hasSeafood && !hasBebek && !hasBabi && !hasTahuTempe && isRiceBowl)) {
+    if (isCrispy || isRiceBowl) {
+      totalCal += 310; totalP += 26; totalC += 15; totalF += 17; totalFiber += 0.5;
+      components.push('Ayam Goreng Tepung Crispy (~310 kcal)');
+    } else if (isGrilled) {
+      totalCal += 210; totalP += 27; totalC += 3; totalF += 10; totalFiber += 0;
+      components.push('Ayam Bakar/Panggang (~210 kcal)');
+    } else if (isBoiled) {
+      totalCal += 160; totalP += 30; totalC += 0; totalF += 3.5; totalFiber += 0;
+      components.push('Ayam Rebus/Kukus Sehat (~160 kcal)');
+    } else {
+      totalCal += 240; totalP += 25; totalC += 2; totalF += 14; totalFiber += 0;
+      components.push('Olahan Daging Ayam (~240 kcal)');
+    }
+  } else if (hasSapi) {
+    if (isCrispy) {
+      totalCal += 340; totalP += 24; totalC += 14; totalF += 21; totalFiber += 0.5;
+      components.push('Daging Sapi Krispi/Goreng (~340 kcal)');
+    } else {
+      totalCal += 260; totalP += 26; totalC += 2; totalF += 17; totalFiber += 0;
+      components.push('Olahan Daging Sapi (~260 kcal)');
+    }
+  } else if (hasBebek) {
+    totalCal += 360; totalP += 25; totalC += 2; totalF += 28; totalFiber += 0;
+    components.push('Olahan Bebek Gurih (~360 kcal)');
+  } else if (hasSeafood) {
+    if (isCrispy) {
+      totalCal += 260; totalP += 18; totalC += 18; totalF += 14; totalFiber += 0.5;
+      components.push('Seafood Krispi Tepung (~260 kcal)');
+    } else {
+      totalCal += 140; totalP += 22; totalC += 1; totalF += 4; totalFiber += 0;
+      components.push('Seafood Masak Sehat (~140 kcal)');
+    }
+  } else if (hasTahuTempe) {
+    totalCal += 140; totalP += 10; totalC += 8; totalF += 8; totalFiber += 2.5;
+    components.push('Tahu/Tempe (~140 kcal)');
+  }
+
+  // Saus Khusus & Topping Kaya Lemak/Mentega
+  const hasSaltedEgg = /salted\s*egg|telur\s*asin|telor\s*asin/i.test(str);
+  const hasMentai = /mentai|mayo|mayonnaise/i.test(str);
+  const hasCheese = /keju|cheese|mozzarella|mozarella/i.test(str);
+  const hasCurry = /curry|kari|gulai|rendang/i.test(str);
+  const hasButter = /butter|mentega/i.test(str);
+  const hasSambal = /sambal|sambel|pedas|geprek|ricarica|rica|balado|matah/i.test(str);
+
+  if (hasSaltedEgg) {
+    totalCal += 185; totalP += 4.5; totalC += 3.5; totalF += 17.5; totalFiber += 0.2;
+    components.push('Saus Salted Egg Mentega Gurih (~185 kcal)');
+  }
+  if (hasMentai) {
+    totalCal += 160; totalP += 1.5; totalC += 3; totalF += 16.5; totalFiber += 0;
+    components.push('Saus Mentai Torched (~160 kcal)');
+  }
+  if (hasCheese) {
+    totalCal += 130; totalP += 8; totalC += 2; totalF += 10.5; totalFiber += 0;
+    components.push('Topping Keju Leleh (~130 kcal)');
+  }
+  if (hasCurry && !str.includes('katsu curry')) {
+    totalCal += 140; totalP += 2.5; totalC += 9; totalF += 10.5; totalFiber += 1.2;
+    components.push('Kuah Kari/Gulai Santan (~140 kcal)');
+  }
+  if (hasButter && !hasSaltedEgg) {
+    totalCal += 110; totalP += 0.2; totalC += 0.2; totalF += 12; totalFiber += 0;
+    components.push('Saus Butter Gurih (~110 kcal)');
+  }
+  if (hasSambal && !str.includes('sambal terasi')) {
+    totalCal += 55; totalP += 0.8; totalC += 4; totalF += 4.2; totalFiber += 0.8;
+    components.push('Sambal Minyak Gurih (~55 kcal)');
+  }
+
+  // Topping Telur (Sunny side up / Ceplok / Dadar)
+  const hasEgg = /telur|telor|egg|ceplok|dadar|mata\s*sapi/i.test(str) || (isRiceBowl && /original|komplit|lengkap/i.test(str));
+  if (hasEgg && !hasSaltedEgg) {
+    totalCal += 90; totalP += 6.5; totalC += 0.5; totalF += 7; totalFiber += 0;
+    components.push('Telur Mata Sapi (~90 kcal)');
+  } else if (isRiceBowl && hasSaltedEgg) {
+    totalCal += 88; totalP += 6.3; totalC += 0.5; totalF += 7; totalFiber += 0;
+    components.push('Telur Ceplok Half-Cooked (~88 kcal)');
+  }
+
+  // Fallback adaptif jika belum ada komponen yang cocok
+  if (totalCal === 0) {
+    const isHealthy = /rebus|kukus|bakar|salad|bening|sayur|buah|panggang|diet/i.test(str);
+    const isFried = /goreng|crispy|krispi|tepung|minyak|santan|gulai|lemak|keju/i.test(str);
+    totalCal = isHealthy ? 220 : isFried ? 460 : 380;
+    totalP = isHealthy ? 20 : 16;
+    totalC = isHealthy ? 18 : 42;
+    totalF = isHealthy ? 4 : isFried ? 22 : 14;
+    totalFiber = 2;
+    components.push('Estimasi Sintesis Kuliner Terapan (~' + totalCal + ' kcal)');
+  }
+
+  return {
+    cal: Math.round(totalCal * mult),
+    p: Math.round(totalP * mult * 10) / 10,
+    c: Math.round(totalC * mult * 10) / 10,
+    f: Math.round(totalF * mult * 10) / 10,
+    fiber: Math.round(totalFiber * mult * 10) / 10,
+    breakdownNote: components.join(' + '),
+  };
+}
+
 function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
   const hasText = Boolean(rawText && rawText.trim());
   const hasImage = Boolean(imageInfo && imageInfo.dataUrl);
@@ -405,9 +943,17 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
   let detectedBrand = '';
   if (hasText) {
     if (/mie\s*gacoan|gacoan/i.test(rawText)) detectedBrand = 'Mie Gacoan';
+    else if (/sec\s*bowl|secbowl/i.test(rawText)) detectedBrand = 'SEC Bowl';
+    else if (/eatlah/i.test(rawText)) detectedBrand = 'Eatlah';
+    else if (/yoshinoya/i.test(rawText)) detectedBrand = 'Yoshinoya';
+    else if (/hokben|hoka\s*hoka\s*bento/i.test(rawText)) detectedBrand = 'HokBen';
     else if (/kfc|kentucky/i.test(rawText)) detectedBrand = 'KFC';
     else if (/mcd|mcdonald/i.test(rawText)) detectedBrand = 'McDonalds';
     else if (/padang|sederhana/i.test(rawText)) detectedBrand = 'Nasi Padang';
+    else if (/starbucks/i.test(rawText)) detectedBrand = 'Starbucks';
+    else if (/kopi\s*kenangan/i.test(rawText)) detectedBrand = 'Kopi Kenangan';
+    else if (/mixue/i.test(rawText)) detectedBrand = 'Mixue';
+    else if (/chatime/i.test(rawText)) detectedBrand = 'Chatime';
   }
 
   const detected = [];
@@ -422,18 +968,22 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
       let line = rLine.trim();
       if (!line) continue;
 
-      // Jika ada prefix resto/kategori di awal baris seperti "Mie Gacoan: 1 porsi Mie Suit..."
+      // Jika ada prefix resto/kategori di awal baris seperti "SEC Bowl: 1 porsi Salted Egg..."
       const colonMatch = line.match(/^([a-zA-Z\s]{3,25}):\s*(.+)$/);
       if (colonMatch) {
         const prefix = colonMatch[1].trim();
         const remainder = colonMatch[2].trim();
-        if (/gacoan|kfc|mcd|padang|hokben|starbucks|warteg|menu|sarapan|lunch|dinner/i.test(prefix)) {
+        if (/gacoan|sec\s*bowl|secbowl|eatlah|yoshinoya|kfc|mcd|padang|hokben|starbucks|warteg|menu|sarapan|lunch|dinner/i.test(prefix)) {
           if (/gacoan/i.test(prefix)) detectedBrand = 'Mie Gacoan';
+          else if (/sec\s*bowl|secbowl/i.test(prefix)) detectedBrand = 'SEC Bowl';
+          else if (/eatlah/i.test(prefix)) detectedBrand = 'Eatlah';
+          else if (/yoshinoya/i.test(prefix)) detectedBrand = 'Yoshinoya';
+          else if (/hokben/i.test(prefix)) detectedBrand = 'HokBen';
           line = remainder;
         }
       }
 
-      if (/^(?:mie\s*gacoan|menu|makanan|sarapan|makan\s*(?:siang|malam)|snack|camilan|pesanan|order)\s*:?$/i.test(line)) {
+      if (/^(?:mie\s*gacoan|sec\s*bowl|secbowl|menu|makanan|sarapan|makan\s*(?:siang|malam)|snack|camilan|pesanan|order)\s*:?$/i.test(line)) {
         continue;
       }
 
@@ -454,7 +1004,7 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
       const qtyCheckStr = str.replace(/\b(?:level|lvl)\s*\d+\b/gi, '');
       let mult = 1.0;
 
-      const porsiMatch = qtyCheckStr.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(?:porsi|porsian|pcs|buah|butir|potong|lembar|bungkus|gelas|cup|mangkok|piring|ekor|tusuk|bks|x)?(?:\s|$)/i);
+      const porsiMatch = qtyCheckStr.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(?:porsi|porsian|pcs|buah|butir|potong|lembar|bungkus|gelas|cup|mangkok|piring|ekor|tusuk|bks|bowl|box|x)?(?:\s|$)/i);
       if (porsiMatch) {
         const num = parseFloat(porsiMatch[1].replace(',', '.'));
         if (!isNaN(num) && num > 0) mult = num;
@@ -471,6 +1021,12 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
       let matchedItem = null;
       for (const rule of allRules) {
         if (str.includes(rule.kw)) {
+          // Cegah lauk/bumbu kecil (seperti sambal/timun/nasi putih polos) menelan hidangan komposit lengkap
+          const isCompositeDish = /(?:bowl|ricebox|bento|donburi|paket|nasi|mie|kwetiau|bihun)/i.test(str) &&
+            /(?:ayam|chicken|sapi|beef|dori|ikan|fish|udang|cumi|bebek|pork|babi|telur\s*asin|salted\s*egg|krispi|crispy|mentai|curry)/i.test(str);
+          if (isCompositeDish && (rule.item.cal < 200 || rule.item.name === 'Nasi Putih' || rule.item.name === 'Sambal Tradisional')) {
+            continue;
+          }
           matchedItem = rule.item;
           break;
         }
@@ -494,30 +1050,24 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
             c: Math.round(matchedItem.c * mult * 10) / 10,
             f: Math.round(matchedItem.f * mult * 10) / 10,
             fiber: Math.round(matchedItem.fiber * mult * 10) / 10,
+            notes: matchedItem.notes || '',
           };
           processedMap.set(matchedItem.name, detected.length);
           detected.push(itemObj);
         }
       } else {
-        const cleanName = str.replace(/\b\d+(?:[.,]\d+)?\s*(?:porsi|pcs|buah|x)?\b/gi, '').trim() || segment;
-        const isDrink = /kopi|teh|jus|susu|sirup|boba|air|smoothie|shake|es\s+/i.test(cleanName);
-        const isHealthy = /rebus|kukus|bakar|salad|bening|sayur|buah|panggang|dada ayam/i.test(cleanName);
-        const isFried = /goreng|crispy|tepung|minyak|santan|gulai|lemak|keju/i.test(cleanName);
-
-        const baseCal = isDrink ? 120 : isHealthy ? 220 : isFried ? 420 : 320;
-        const baseP = isHealthy ? 20 : 12;
-        const baseC = isDrink ? 24 : 35;
-        const baseF = isFried ? 18 : isHealthy ? 4 : 10;
-
+        const cleanName = str.replace(/\b\d+(?:[.,]\d+)?\s*(?:porsi|pcs|buah|bowl|box|x)?\b/gi, '').trim() || segment;
+        const est = estimateUnknownFoodNutrients(cleanName, mult);
         const formattedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
         detected.push({
-          item: { name: formattedName, portion: `${mult} porsi estimasi AI` },
+          item: { name: formattedName, portion: `${mult} porsi estimasi sintesis kuliner AI`, notes: est.breakdownNote },
           mult,
-          cal: Math.round(baseCal * mult),
-          p: Math.round(baseP * mult * 10) / 10,
-          c: Math.round(baseC * mult * 10) / 10,
-          f: Math.round(baseF * mult * 10) / 10,
-          fiber: Math.round(1.5 * mult * 10) / 10,
+          cal: est.cal,
+          p: est.p,
+          c: est.c,
+          f: est.f,
+          fiber: est.fiber,
+          notes: est.breakdownNote,
         });
       }
     }
@@ -545,6 +1095,7 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
       c: baseC,
       f: baseF,
       fiber: baseFiber,
+      notes: 'Estimasi visual citra foto',
     });
   }
 
@@ -561,7 +1112,14 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
 
   // Buat Judul dan Breakdown Komponen Terdeteksi
   const title = detected.map((d) => (d.mult !== 1 ? `${d.mult}x ` : '1x ') + d.item.name).join(' + ');
-  const breakdownText = 'Komponen terdeteksi: ' + detected.map((d) => `${d.mult !== 1 ? d.mult + 'x ' : ''}${d.item.name} (~${d.cal} kcal)`).join(', ');
+  const breakdownParts = [];
+  detected.forEach((d) => {
+    let note = d.notes || d.item.notes || '';
+    let str = `${d.mult !== 1 ? d.mult + 'x ' : ''}${d.item.name} (~${d.cal} kcal)`;
+    if (note) str += ` [${note}]`;
+    breakdownParts.push(str);
+  });
+  const breakdownText = 'Komponen terdeteksi: ' + breakdownParts.join(' · ');
 
   // Saran analisis gizi & defisit kalori kontekstual
   let advice = '';
@@ -2199,6 +2757,19 @@ function bindEvents() {
     $('#ai-res-fiber').textContent = `${result.fiber}g`;
     $('#ai-res-advice').textContent = result.advice;
 
+    // Populate manual adjust fields
+    const inpCal = $('#inp-adj-cal');
+    const inpCarb = $('#inp-adj-carb');
+    const inpProt = $('#inp-adj-prot');
+    const inpFat = $('#inp-adj-fat');
+    if (inpCal) inpCal.value = result.calories;
+    if (inpCarb) inpCarb.value = result.carbs;
+    if (inpProt) inpProt.value = result.protein;
+    if (inpFat) inpFat.value = result.fat;
+
+    const adjBox = $('#ai-adjust-inputs');
+    if (adjBox) adjBox.hidden = true;
+
     // Display image thumbnail in result panel if uploaded
     const thumbBox = $('#ai-result-thumb-box');
     const thumbImg = $('#ai-result-thumb-img');
@@ -2245,6 +2816,38 @@ function bindEvents() {
       if (inp) inp.value = text;
       runAiAnalysis(text);
     });
+  });
+
+  // Toggle & Real-time Sync for Macro Adjustments
+  $('#btn-toggle-adjust-macros')?.addEventListener('click', () => {
+    const adjBox = $('#ai-adjust-inputs');
+    if (!adjBox) return;
+    adjBox.hidden = !adjBox.hidden;
+    if (!adjBox.hidden) {
+      $('#inp-adj-cal')?.focus();
+    }
+  });
+
+  const syncAdjustedMacros = () => {
+    if (!ui.lastAiAnalysis) return;
+    const c = Math.max(0, parseInt($('#inp-adj-cal')?.value) || 0);
+    const cb = Math.max(0, parseFloat($('#inp-adj-carb')?.value) || 0);
+    const p = Math.max(0, parseFloat($('#inp-adj-prot')?.value) || 0);
+    const f = Math.max(0, parseFloat($('#inp-adj-fat')?.value) || 0);
+
+    ui.lastAiAnalysis.calories = c;
+    ui.lastAiAnalysis.carbs = cb;
+    ui.lastAiAnalysis.protein = p;
+    ui.lastAiAnalysis.fat = f;
+
+    $('#ai-res-calories').textContent = c;
+    $('#ai-res-carb').textContent = `${cb}g`;
+    $('#ai-res-prot').textContent = `${p}g`;
+    $('#ai-res-fat').textContent = `${f}g`;
+  };
+
+  ['inp-adj-cal', 'inp-adj-carb', 'inp-adj-prot', 'inp-adj-fat'].forEach((id) => {
+    $(`#${id}`)?.addEventListener('input', syncAdjustedMacros);
   });
 
   $('#btn-ai-cancel')?.addEventListener('click', () => {

@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=3.6" />
+  <link rel="stylesheet" href="styles.css?v=3.7" />
 </head>
 <body>
   <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -514,6 +514,7 @@
                 <span class="preset-label">Contoh Populer:</span>
                 <div class="preset-chips" id="quick-preset-chips">
                   <button type="button" class="chip-food" data-text="Mie Gacoan: 1 porsi Mie Suit, 2 porsi Udang Keju, dan 1 porsi siomay">🍜 Mie Gacoan Komplit</button>
+                  <button type="button" class="chip-food" data-text="1 porsi sec bowl original">🍳 SEC Bowl Salted Egg</button>
                   <button type="button" class="chip-food" data-text="Nasi padang rendang sapi 1 potong dan daun singkong">🍛 Nasi Padang Rendang</button>
                   <button type="button" class="chip-food" data-text="Ayam geprek paha sambal korek dan 1 porsi nasi putih">🍗 Ayam Geprek + Nasi</button>
                   <button type="button" class="chip-food" data-text="2 butir telur rebus dan 2 lembar roti gandum">🍳 Telur Rebus &amp; Roti Gandum</button>
@@ -564,6 +565,33 @@
                     <span class="macro-dot"></span>
                     <span class="macro-lbl">Serat</span>
                     <b id="ai-res-fiber">4.5g</b>
+                  </div>
+                </div>
+
+                <div class="ai-macro-adjust-wrap">
+                  <button type="button" class="ai-adjust-toggle-btn" id="btn-toggle-adjust-macros">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <span>Sesuaikan / Koreksi Angka Gizi (Opsional)</span>
+                  </button>
+                  <div class="ai-adjust-inputs" id="ai-adjust-inputs" hidden>
+                    <div class="adjust-grid">
+                      <div class="adjust-field">
+                        <label for="inp-adj-cal">Kalori (kcal)</label>
+                        <input type="number" id="inp-adj-cal" min="0" step="1" />
+                      </div>
+                      <div class="adjust-field">
+                        <label for="inp-adj-carb">Karbohidrat (g)</label>
+                        <input type="number" id="inp-adj-carb" min="0" step="0.5" />
+                      </div>
+                      <div class="adjust-field">
+                        <label for="inp-adj-prot">Protein (g)</label>
+                        <input type="number" id="inp-adj-prot" min="0" step="0.5" />
+                      </div>
+                      <div class="adjust-field">
+                        <label for="inp-adj-fat">Lemak (g)</label>
+                        <input type="number" id="inp-adj-fat" min="0" step="0.5" />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1016,6 +1044,6 @@
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
-  <script src="app.js?v=3.6"></script>
+  <script src="app.js?v=3.7"></script>
 </body>
 </html>
