@@ -698,25 +698,41 @@ tr:hover .row-actions { opacity: 1; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 130px;
-  padding: 6px 12px;
+  gap: 8px;
+  min-width: 135px;
+  padding: 6px 14px;
   border-radius: 10px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13.5px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
-  transition: background .2s;
+  transition: all .2s;
+  user-select: none;
 }
 .nutri-date-badge:hover {
   background: var(--surface-2);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #fff;
 }
-.nutri-date-badge input[type="date"] {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
+.nutri-date-badge svg {
+  color: var(--muted);
+}
+.sr-date-input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 .nutri-topbar-actions {
   display: flex;
@@ -746,6 +762,32 @@ tr:hover .row-actions { opacity: 1; }
   background: rgba(52, 211, 153, 0.12);
   color: var(--green);
 }
+.stat-macro-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 4px;
+  flex-wrap: wrap;
+}
+.macro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+.macro-badge b {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.macro-b-prot b { color: var(--cyan); }
+.macro-b-carb b { color: var(--amber); }
+.macro-b-fat b { color: var(--rose); }
 .stat-macro-line {
   font-size: 21px !important;
   letter-spacing: -0.01em !important;
@@ -845,8 +887,19 @@ tr:hover .row-actions { opacity: 1; }
   gap: 12px;
   flex-wrap: wrap;
 }
+.ai-meal-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ai-choice-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
 .ai-meal-choice select {
-  min-width: 180px;
+  min-width: 190px;
 }
 
 /* Quick presets */

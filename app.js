@@ -1127,7 +1127,12 @@ function renderNutrition() {
   }
 
   // 4. Macro Nutrients Card
-  $('#stat-nutri-macros').textContent = `P: ${totalProt}g · C: ${totalCarb}g · L: ${totalFat}g`;
+  const macroEl = $('#stat-nutri-macros');
+  if (macroEl) macroEl.textContent = `P: ${totalProt}g · C: ${totalCarb}g · L: ${totalFat}g`;
+  const protEl = $('#stat-prot-val'); if (protEl) protEl.textContent = `${totalProt}g`;
+  const carbEl = $('#stat-carb-val'); if (carbEl) carbEl.textContent = `${totalCarb}g`;
+  const fatEl = $('#stat-fat-val'); if (fatEl) fatEl.textContent = `${totalFat}g`;
+
   const targetProtein = Math.round(profile.weight * 1.6);
   const protPct = Math.round((totalProt / targetProtein) * 100);
   $('#stat-macro-summary').textContent = `Target protein: ~${targetProtein}g/hari (${protPct}% tercapai)`;
@@ -1227,9 +1232,11 @@ function renderFoodLogsList(foodLogs) {
 
   const emptyEl = $('#food-log-empty');
   const sectionsEl = $('#food-meal-sections');
-  if (emptyEl && sectionsEl) {
-    emptyEl.hidden = totalCount > 0;
-    sectionsEl.hidden = totalCount === 0;
+  if (sectionsEl) {
+    sectionsEl.hidden = false;
+  }
+  if (emptyEl) {
+    emptyEl.hidden = true;
   }
   const subEl = $('#food-log-sub');
   if (subEl) {
@@ -1306,7 +1313,19 @@ function renderHeader() {
   const firstName = currentUser?.name ? currentUser.name.trim().split(/\s+/)[0] : '';
   const greetTime = h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam';
   $('#greeting').textContent = `${greetTime}${firstName ? ', ' + firstName : ''} 👋`;
-  $('#view-title').textContent = VIEW_TITLES[ui.view];
+  $('#view-title').textContent = VIEW_TITLES[ui.view] || 'Ledgerly';
+
+  // Sembunyikan month-picker & add-tx-btn saat di view nutrisi agar topbar rapi & fokus
+  const monthPicker = $('.month-picker');
+  const addTxBtn = $('#add-tx-btn');
+  if (ui.view === 'nutrition') {
+    if (monthPicker) monthPicker.style.display = 'none';
+    if (addTxBtn) addTxBtn.style.display = 'none';
+  } else {
+    if (monthPicker) monthPicker.style.display = '';
+    if (addTxBtn) addTxBtn.style.display = '';
+  }
+
   $('#month-label').textContent = ui.month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   $('#next-month').disabled = isCurrentMonth(ui.month) || ui.month > TODAY;
   const sym = currencySymbol();
@@ -1747,6 +1766,16 @@ function bindEvents() {
     ui.nutriDate = toISO(TODAY);
     renderNutrition();
     toast('Menampilkan catatan hari ini');
+  });
+  $('#nutri-date-trigger')?.addEventListener('click', (e) => {
+    const picker = $('#nutri-date-picker');
+    if (e.target !== picker) {
+      if (typeof picker?.showPicker === 'function') {
+        try { picker.showPicker(); } catch (_) { picker.focus(); }
+      } else {
+        picker?.click();
+      }
+    }
   });
   $('#nutri-date-picker')?.addEventListener('change', (e) => {
     if (e.target.value) {

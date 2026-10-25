@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=3.2" />
 </head>
 <body>
   <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -351,25 +351,26 @@
         <div class="nutri-topbar">
           <div class="nutri-date-nav">
             <button class="icon-btn" id="nutri-prev-day" title="Hari sebelumnya" aria-label="Hari sebelumnya">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </button>
-            <div class="nutri-date-badge">
+            <div class="nutri-date-badge" id="nutri-date-trigger" title="Klik untuk pilih tanggal">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               <span id="nutri-date-label">Hari ini</span>
-              <input type="date" id="nutri-date-picker" title="Pilih tanggal" aria-label="Pilih tanggal" />
+              <input type="date" id="nutri-date-picker" class="sr-date-input" aria-label="Pilih tanggal" />
             </div>
             <button class="icon-btn" id="nutri-next-day" title="Hari berikutnya" aria-label="Hari berikutnya">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
             </button>
             <button class="btn btn-secondary btn-sm" id="nutri-today-btn">Hari Ini</button>
           </div>
           <div class="nutri-topbar-actions">
             <button class="btn btn-secondary btn-sm" id="btn-open-food-modal">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-              <span>+ Catat Makanan</span>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+              <span>Catat Makanan</span>
             </button>
             <button class="btn btn-primary btn-sm" id="btn-jump-ai">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>
-              <span>✨ Deteksi AI</span>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>
+              <span>Deteksi AI</span>
             </button>
           </div>
         </div>
@@ -379,7 +380,7 @@
           <article class="card stat featured nutri-featured">
             <div class="stat-top">
               <span class="stat-icon icon-flame">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
               </span>
               <span class="delta" id="stat-nutri-status-badge">Defisit Aman</span>
             </div>
@@ -396,7 +397,7 @@
           <article class="card stat">
             <div class="stat-top">
               <span class="stat-icon icon-scale">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
               </span>
               <span class="delta" id="stat-bmi-badge">Ideal</span>
             </div>
@@ -411,7 +412,7 @@
           <article class="card stat">
             <div class="stat-top">
               <span class="stat-icon icon-tdee">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               </span>
               <span class="delta up" id="stat-deficit-badge">-500 kcal</span>
             </div>
@@ -426,12 +427,16 @@
           <article class="card stat">
             <div class="stat-top">
               <span class="stat-icon icon-macro">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
               </span>
               <span class="delta neutral" id="stat-macro-status">Nutrisi</span>
             </div>
             <p class="stat-label">Makronutrisi Terkonsumsi</p>
-            <p class="stat-value stat-macro-line" id="stat-nutri-macros">P: 0g · C: 0g · L: 0g</p>
+            <div class="stat-macro-row">
+              <span class="macro-badge macro-b-prot">P: <b id="stat-prot-val">0g</b></span>
+              <span class="macro-badge macro-b-carb">C: <b id="stat-carb-val">0g</b></span>
+              <span class="macro-badge macro-b-fat">L: <b id="stat-fat-val">0g</b></span>
+            </div>
             <div class="stat-foot">
               <span class="stat-note" id="stat-macro-summary">Target protein: ~105g/hari</span>
             </div>
@@ -455,11 +460,11 @@
               </div>
 
               <div class="ai-input-wrap">
-                <textarea id="ai-food-input" rows="2" placeholder="Tuliskan makanan/minuman yang Anda santap..."></textarea>
+                <textarea id="ai-food-input" rows="3" placeholder="Tuliskan makanan/minuman yang Anda santap... (contoh: 1 porsi nasi padang rendang dan daun singkong)"></textarea>
                 <div class="ai-input-controls">
                   <div class="ai-meal-choice">
-                    <label for="ai-meal-select" class="sr-only">Waktu Makan</label>
-                    <select id="ai-meal-select">
+                    <span class="ai-choice-label">Waktu Makan:</span>
+                    <select id="ai-meal-select" aria-label="Waktu Makan">
                       <option value="breakfast">🌅 Sarapan (Breakfast)</option>
                       <option value="lunch" selected>☀️ Makan Siang (Lunch)</option>
                       <option value="dinner">🌙 Makan Malam (Dinner)</option>
@@ -468,7 +473,7 @@
                   </div>
                   <button type="button" class="btn btn-primary" id="btn-run-ai-estimate">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>
-                    <span>Analisis AI</span>
+                    <span>Analisis AI Sekarang</span>
                   </button>
                 </div>
               </div>
@@ -954,6 +959,6 @@
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=3.2"></script>
 </body>
 </html>
