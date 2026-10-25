@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=3.2" />
+  <link rel="stylesheet" href="styles.css?v=3.3" />
 </head>
 <body>
   <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -537,6 +537,25 @@
                   <p id="ai-res-advice">Tinggi protein dan karbohidrat mengenyangkan. Makanan ini memakai ~38% kuota kalori harian Anda. Untuk makan malam berikutnya, prioritaskan sayur bening dan protein tanpa minyak.</p>
                 </div>
 
+                <!-- Delivery Order Links for Analyzed Food -->
+                <div class="ai-delivery-order" id="ai-delivery-order">
+                  <span class="ai-order-label">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="17" r="3"/><circle cx="6" cy="17" r="3"/><path d="M14 9h4l2 4v4h-2"/><path d="M6 17h8"/><path d="m9 9 2-4h4"/></svg>
+                    Pesan Makanan Ini Online:
+                  </span>
+                  <div class="order-chips">
+                    <a href="#" id="ai-link-gofood" target="_blank" rel="noopener noreferrer" class="order-chip chip-gofood" title="Cari di GoFood">
+                      <span class="order-dot"></span> GoFood ↗
+                    </a>
+                    <a href="#" id="ai-link-grabfood" target="_blank" rel="noopener noreferrer" class="order-chip chip-grab" title="Cari di GrabFood">
+                      <span class="order-dot"></span> GrabFood ↗
+                    </a>
+                    <a href="#" id="ai-link-shopeefood" target="_blank" rel="noopener noreferrer" class="order-chip chip-shopee" title="Cari di ShopeeFood">
+                      <span class="order-dot"></span> ShopeeFood ↗
+                    </a>
+                  </div>
+                </div>
+
                 <div class="ai-result-actions">
                   <button type="button" class="btn btn-secondary btn-sm" id="btn-ai-cancel">Tutup Hasil</button>
                   <button type="button" class="btn btn-primary" id="btn-ai-save-to-log">
@@ -959,6 +978,6 @@
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
-  <script src="app.js?v=3.2"></script>
+  <script src="app.js?v=3.3"></script>
 </body>
 </html>

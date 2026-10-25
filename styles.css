@@ -1316,6 +1316,120 @@ tr:hover .row-actions { opacity: 1; }
   font-size: 11.5px;
   color: var(--muted);
   line-height: 1.4;
+  flex: 1;
+}
+
+/* Delivery Order Links & Quick Log */
+.next-meal-actions {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.order-food-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.order-food-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.order-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.order-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: all .2s var(--ease);
+}
+.order-chip:hover {
+  transform: translateY(-1px);
+  color: #fff;
+}
+.order-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.chip-gofood:hover {
+  background: rgba(0, 170, 19, 0.16);
+  border-color: rgba(0, 170, 19, 0.5);
+  box-shadow: 0 0 10px rgba(0, 170, 19, 0.25);
+}
+.chip-gofood .order-dot {
+  background: #00aa13;
+  box-shadow: 0 0 5px #00aa13;
+}
+
+.chip-grab:hover {
+  background: rgba(0, 177, 79, 0.16);
+  border-color: rgba(0, 177, 79, 0.5);
+  box-shadow: 0 0 10px rgba(0, 177, 79, 0.25);
+}
+.chip-grab .order-dot {
+  background: #00b14f;
+  box-shadow: 0 0 5px #00b14f;
+}
+
+.chip-shopee:hover {
+  background: rgba(238, 77, 45, 0.16);
+  border-color: rgba(238, 77, 45, 0.5);
+  box-shadow: 0 0 10px rgba(238, 77, 45, 0.25);
+}
+.chip-shopee .order-dot {
+  background: #ee4d2d;
+  box-shadow: 0 0 5px #ee4d2d;
+}
+
+.btn-log-recommended {
+  width: 100%;
+  justify-content: center;
+  font-size: 11.5px;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+/* AI Result Order Bar */
+.ai-delivery-order {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ai-order-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .action-plan-list {

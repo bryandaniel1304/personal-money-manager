@@ -431,19 +431,34 @@ function generateNextMealAndActions() {
     mealOptions = [
       {
         name: 'Dada Ayam Bakar Madu + Nasi Merah + Cah Kangkung',
+        searchQuery: 'Dada Ayam Bakar',
         cal: '430 kcal',
+        calories: 430,
+        protein: 38,
+        carbs: 42,
+        fat: 9,
         macros: 'Protein 38g · Karbo 42g · Lemak 9g',
         why: 'Kombinasi karbohidrat kompleks berserat tinggi dan protein tinggi, memberikan energi stabil tanpa memicu kantuk.',
       },
       {
         name: 'Ikan Nila Bakar Lalapan + Sambal Terasi + Tahu Bacem',
+        searchQuery: 'Ikan Nila Bakar',
         cal: '385 kcal',
+        calories: 385,
+        protein: 34,
+        carbs: 22,
+        fat: 11,
         macros: 'Protein 34g · Karbo 22g · Lemak 11g',
         why: 'Ikan air tawar kaya asam amino dan rendah lemak jenuh. Tahu bacem menambah serat nabati.',
       },
       {
         name: 'Sup Ayam Sayur Bening Wortel Kentang + Telur Rebus 2 Butir',
+        searchQuery: 'Sup Ayam Bening',
         cal: '320 kcal',
+        calories: 320,
+        protein: 26,
+        carbs: 28,
+        fat: 10,
         macros: 'Protein 26g · Karbo 28g · Lemak 10g',
         why: 'Hangat, kaya mikronutrisi dan elektrolit alami yang sangat mengenyangkan dengan kalori bersahabat.',
       },
@@ -452,19 +467,34 @@ function generateNextMealAndActions() {
     mealOptions = [
       {
         name: 'Dada Ayam Panggang (120g) + Brokoli Kukus Bawang Putih',
+        searchQuery: 'Dada Ayam Panggang',
         cal: '235 kcal',
+        calories: 235,
+        protein: 36,
+        carbs: 8,
+        fat: 4,
         macros: 'Protein 36g · Karbo 8g · Lemak 4g',
         why: 'Sangat padat protein dan minimal karbo/lemak, sempurna untuk menjaga sisa kuota kalori Anda tetap defisit.',
       },
       {
         name: 'Sup Tahu Udang Bening + Jamur Tiram & Daun Bawang',
+        searchQuery: 'Sup Tahu Udang',
         cal: '190 kcal',
+        calories: 190,
+        protein: 24,
+        carbs: 9,
+        fat: 3,
         macros: 'Protein 24g · Karbo 9g · Lemak 3g',
         why: 'Volume tinggi air & serat jamur meregangkan lambung dan memberi sinyal kenyang instan ke otak.',
       },
       {
         name: 'Greek Yogurt Plain (150g) + 1/2 Buah Apel & Sedikit Madu',
+        searchQuery: 'Greek Yogurt',
         cal: '180 kcal',
+        calories: 180,
+        protein: 16,
+        carbs: 22,
+        fat: 2.5,
         macros: 'Protein 16g · Karbo 22g · Lemak 2.5g',
         why: 'Kaya probiotik untuk kesehatan pencernaan dan kasein lambat cerna yang mencegah lapar malam hari.',
       },
@@ -473,19 +503,34 @@ function generateNextMealAndActions() {
     mealOptions = [
       {
         name: 'Sayur Bening Bayam & Jagung Manis Tanpa Minyak',
+        searchQuery: 'Sayur Bening Bayam',
         cal: '65 kcal',
+        calories: 65,
+        protein: 3,
+        carbs: 12,
+        fat: 0.5,
         macros: 'Protein 3g · Karbo 12g · Lemak 0.5g',
         why: 'Hampir nol lemak, volume besar dari sayuran hijau untuk memuaskan rasa lapar tanpa menambah beban kalori.',
       },
       {
         name: '2 Butir Putih Telur Rebus + Timun Iris Garam Lada',
+        searchQuery: 'Telur Rebus',
         cal: '45 kcal',
+        calories: 45,
+        protein: 7.2,
+        carbs: 2,
+        fat: 0.2,
         macros: 'Protein 7.2g · Karbo 2g · Lemak 0.2g',
         why: 'Murni asam amino bebas lemak untuk perbaikan jaringan otot saat tidur malam.',
       },
       {
         name: 'Teh Chamomile / Teh Hijau Hangat + 1 Buah Pir Segar',
+        searchQuery: 'Buah Pir Segar',
         cal: '55 kcal',
+        calories: 55,
+        protein: 0.5,
+        carbs: 14,
+        fat: 0.1,
         macros: 'Protein 0.5g · Karbo 14g · Lemak 0.1g',
         why: 'Menenangkan sistem saraf dan memberikan rasa manis alami dari buah berair tinggi serat.',
       },
@@ -1262,7 +1307,13 @@ function renderAiCoachSection() {
 
   const mealContainer = $('#next-meal-suggestions');
   if (mealContainer) {
-    mealContainer.innerHTML = coachData.mealOptions.map((opt) => `
+    mealContainer.innerHTML = coachData.mealOptions.map((opt) => {
+      const q = encodeURIComponent(opt.searchQuery || opt.name);
+      const gofoodUrl = `https://gofood.co.id/search?q=${q}`;
+      const grabfoodUrl = `https://food.grab.com/id/id/search?keyword=${q}`;
+      const shopeefoodUrl = `https://shopee.co.id/search?keyword=${encodeURIComponent((opt.searchQuery || opt.name) + ' food')}`;
+
+      return `
       <div class="next-meal-card">
         <div class="next-meal-top">
           <span class="next-meal-name">${esc(opt.name)}</span>
@@ -1270,8 +1321,64 @@ function renderAiCoachSection() {
         </div>
         <div class="next-meal-macro">${esc(opt.macros)}</div>
         <p class="next-meal-why">${esc(opt.why)}</p>
+
+        <div class="next-meal-actions">
+          <div class="order-food-wrap">
+            <span class="order-food-label">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="17" r="3"/><circle cx="6" cy="17" r="3"/><path d="M14 9h4l2 4v4h-2"/><path d="M6 17h8"/><path d="m9 9 2-4h4"/></svg>
+              Pesan Delivery:
+            </span>
+            <div class="order-chips">
+              <a href="${gofoodUrl}" target="_blank" rel="noopener noreferrer" class="order-chip chip-gofood" title="Cari di GoFood">
+                <span class="order-dot"></span> GoFood ↗
+              </a>
+              <a href="${grabfoodUrl}" target="_blank" rel="noopener noreferrer" class="order-chip chip-grab" title="Cari di GrabFood">
+                <span class="order-dot"></span> GrabFood ↗
+              </a>
+              <a href="${shopeefoodUrl}" target="_blank" rel="noopener noreferrer" class="order-chip chip-shopee" title="Cari di ShopeeFood">
+                <span class="order-dot"></span> ShopeeFood ↗
+              </a>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm btn-log-recommended" data-meal-json="${esc(JSON.stringify(opt))}">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Catat Menu Ini</span>
+          </button>
+        </div>
       </div>
-    `).join('');
+      `;
+    }).join('');
+
+    // Attach listeners for quick-logging recommended meals
+    mealContainer.querySelectorAll('.btn-log-recommended').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const dataStr = e.currentTarget.dataset.mealJson;
+        if (!dataStr) return;
+        try {
+          const item = JSON.parse(dataStr);
+          state.nutrition ||= defaultNutrition();
+          state.nutrition.foodLogs ||= [];
+          const hour = (new Date()).getHours();
+          const mealType = hour < 11 ? 'breakfast' : hour < 15 ? 'lunch' : hour < 19 ? 'dinner' : 'snack';
+          state.nutrition.foodLogs.push({
+            id: uid(),
+            name: item.name,
+            meal: mealType,
+            date: ui.nutriDate || toISO(TODAY),
+            calories: item.calories || parseInt(item.cal) || 200,
+            protein: item.protein || 20,
+            carbs: item.carbs || 15,
+            fat: item.fat || 5,
+            notes: 'Dicatat dari rekomendasi AI',
+          });
+          saveState();
+          renderNutrition();
+          toast(`“${item.name}” berhasil dicatat ke menu hari ini!`);
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    });
   }
 
   const actionContainer = $('#action-plan-list');
@@ -1806,6 +1913,15 @@ function bindEvents() {
     $('#ai-res-fat').textContent = `${result.fat}g`;
     $('#ai-res-fiber').textContent = `${result.fiber}g`;
     $('#ai-res-advice').textContent = result.advice;
+
+    // Update online order links for detected food
+    const q = encodeURIComponent(result.title);
+    const gofoodBtn = $('#ai-link-gofood');
+    if (gofoodBtn) gofoodBtn.href = `https://gofood.co.id/search?q=${q}`;
+    const grabfoodBtn = $('#ai-link-grabfood');
+    if (grabfoodBtn) grabfoodBtn.href = `https://food.grab.com/id/id/search?keyword=${q}`;
+    const shopeefoodBtn = $('#ai-link-shopeefood');
+    if (shopeefoodBtn) shopeefoodBtn.href = `https://shopee.co.id/search?keyword=${encodeURIComponent(result.title + ' food')}`;
 
     const panel = $('#ai-result-panel');
     if (panel) {
