@@ -97,6 +97,20 @@ const FOOD_KNOWLEDGE_BASE = [
   { keywords: ['mie goreng', 'indomie goreng', 'mi goreng'], name: 'Mie Goreng Instant', portion: '1 bungkus', cal: 380, p: 8, c: 54, f: 15, fiber: 2 },
   { keywords: ['mie kuah', 'mie rebus', 'indomie kuah', 'mi kuah'], name: 'Mie Kuah Instant', portion: '1 bungkus', cal: 330, p: 7, c: 50, f: 12, fiber: 2 },
   { keywords: ['mie kuning', 'bihun', 'kwetiau'], name: 'Mie / Bihun Rebus', portion: '1 mangkok', cal: 190, p: 4, c: 40, f: 1.5, fiber: 1.2 },
+
+  // Menu Spesifik Mie Gacoan & Dimsum Populer
+  { keywords: ['mie suit', 'mie gacoan suit', 'gacoan suit', 'mie gacoan level 0', 'mie putih gacoan'], name: 'Mie Suit (Mie Gacoan)', portion: '1 porsi (gurih asin tanpa cabai + ayam & pangsit)', cal: 510, p: 17, c: 66, f: 19, fiber: 2.5 },
+  { keywords: ['mie hompimpa', 'mie hompimpaa', 'gacoan hompimpa', 'mie pedas asin gacoan'], name: 'Mie Hompimpa (Mie Gacoan)', portion: '1 porsi (pedas asin level cabai + ayam & pangsit)', cal: 535, p: 17.5, c: 68, f: 20, fiber: 3.0 },
+  { keywords: ['mie gacoan', 'mie iblis', 'gacoan level', 'mie pedas manis gacoan'], name: 'Mie Gacoan (Kecap Pedas Manis)', portion: '1 porsi (pedas manis gurih + ayam & pangsit)', cal: 550, p: 17, c: 74, f: 20, fiber: 3.0 },
+  { keywords: ['udang keju', 'udang keju gacoan', 'dimsum udang keju'], name: 'Udang Keju (Mie Gacoan)', portion: '1 porsi (3 pcs olahan udang keju leleh goreng)', cal: 330, p: 16, c: 21, f: 20, fiber: 1.0 },
+  { keywords: ['udang rambutan', 'udang rambutan gacoan', 'dimsum udang rambutan'], name: 'Udang Rambutan (Mie Gacoan)', portion: '1 porsi (3 pcs bola udang crispy)', cal: 295, p: 14, c: 19, f: 18, fiber: 0.8 },
+  { keywords: ['siomay gacoan', 'siomay ayam udang', 'siomay dimsum', 'dimsum siomay', 'siomay', 'siomai'], name: 'Siomay Dimsum Ayam Udang', portion: '1 porsi (3 pcs siomay kukus lembut)', cal: 195, p: 15, c: 12, f: 9, fiber: 0.8 },
+  { keywords: ['pangsit goreng gacoan', 'pangsit goreng'], name: 'Pangsit Goreng Gacoan', portion: '1 porsi (3 pcs pangsit goreng)', cal: 270, p: 10, c: 24, f: 15, fiber: 1.0 },
+  { keywords: ['lumpia udang', 'lumpia gacoan'], name: 'Lumpia Udang Gacoan', portion: '1 porsi (3 pcs)', cal: 260, p: 13, c: 18, f: 15, fiber: 0.8 },
+  { keywords: ['es gobak sodor', 'es teklek', 'es sluku bathok', 'es petak umpet'], name: 'Es Segar Gacoan', portion: '1 cup', cal: 195, p: 1, c: 46, f: 1, fiber: 0.5 },
+  { keywords: ['seblak komplit', 'seblak'], name: 'Seblak Komplit', portion: '1 mangkok sedang', cal: 460, p: 16, c: 56, f: 19, fiber: 2.2 },
+  { keywords: ['batagor'], name: 'Batagor Bumbu Kacang', portion: '1 porsi', cal: 390, p: 14, c: 41, f: 19, fiber: 2.8 },
+  { keywords: ['pempek kapal selam', 'pempek'], name: 'Pempek Kapal Selam + Cuko', portion: '1 buah besar isi telur', cal: 325, p: 16, c: 38, f: 12, fiber: 1.0 },
   { keywords: ['oatmeal', 'oat'], name: 'Oatmeal', portion: '1 mangkok (40g kering)', cal: 150, p: 5, c: 27, f: 2.5, fiber: 4 },
   { keywords: ['roti gandum'], name: 'Roti Gandum Utuh', portion: '1 lembar', cal: 75, p: 3.5, c: 13, f: 1.1, fiber: 2.2 },
   { keywords: ['roti tawar', 'roti'], name: 'Roti Tawar Putih', portion: '1 lembar', cal: 80, p: 2.8, c: 15, f: 1.0, fiber: 0.8 },
@@ -310,65 +324,139 @@ function calcDailyLimit(profile) {
 }
 
 function analyzeFoodWithAI(rawText, mealType = 'lunch') {
-  const query = rawText.trim().toLowerCase();
-  if (!query) return null;
+  if (!rawText || !rawText.trim()) return null;
 
-  const detected = [];
-  const matchedKeywords = new Set();
-
+  // 1. Flatten & urutkan semua rules dari keyword terpanjang ke terpendek (greedy matching)
+  // Ini krusial agar kata spesifik seperti "udang keju" dicocokkan sebelum "udang", atau "mie suit" sebelum "mie"
+  const allRules = [];
   for (const item of FOOD_KNOWLEDGE_BASE) {
     for (const kw of item.keywords) {
-      if (query.includes(kw) && !matchedKeywords.has(item.name)) {
-        let mult = 1.0;
-        const beforeIdx = query.indexOf(kw);
-        const snippet = query.slice(Math.max(0, beforeIdx - 15), beforeIdx + kw.length + 15);
-        if (snippet.includes('1/2') || snippet.includes('setengah') || snippet.includes('separuh')) mult = 0.5;
-        else if (snippet.includes('1/4') || snippet.includes('seperempat')) mult = 0.25;
-        else if (snippet.includes('2 ') || snippet.includes('2butir') || snippet.includes('2potong') || snippet.includes('2ekor') || snippet.includes('2lembar')) mult = 2.0;
-        else if (snippet.includes('3 ') || snippet.includes('3butir') || snippet.includes('3potong')) mult = 3.0;
-        else if (snippet.includes('4 ') || snippet.includes('4butir')) mult = 4.0;
-        else if (snippet.includes('5 ') || snippet.includes('5tusuk')) mult = 1.0;
-        else if (snippet.includes('10 ') || snippet.includes('10tusuk')) mult = 2.0;
-        else if (snippet.includes('jumbo') || snippet.includes('besar')) mult = 1.35;
-        else if (snippet.includes('kecil')) mult = 0.75;
+      allRules.push({ kw: kw.toLowerCase().trim(), item });
+    }
+  }
+  allRules.sort((a, b) => b.kw.length - a.kw.length);
 
-        detected.push({
-          item,
-          mult,
-          cal: Math.round(item.cal * mult),
-          p: Math.round(item.p * mult * 10) / 10,
-          c: Math.round(item.c * mult * 10) / 10,
-          f: Math.round(item.f * mult * 10) / 10,
-          fiber: Math.round(item.fiber * mult * 10) / 10,
-        });
-        matchedKeywords.add(item.name);
-        break;
-      }
+  // 2. Deteksi konteks brand / restoran jika ada (misal "Mie Gacoan:", "Gacoan", "Padang", "KFC")
+  let detectedBrand = '';
+  if (/mie\s*gacoan|gacoan/i.test(rawText)) detectedBrand = 'Mie Gacoan';
+  else if (/kfc|kentucky/i.test(rawText)) detectedBrand = 'KFC';
+  else if (/mcd|mcdonald/i.test(rawText)) detectedBrand = 'McDonalds';
+  else if (/padang|sederhana/i.test(rawText)) detectedBrand = 'Nasi Padang';
+
+  // 3. Pecah input menjadi baris dan item-item terpisah (mendukung daftar bernomor, bullet, koma, tanda tambah)
+  const rawLines = rawText.split(/[\r\n]+/);
+  const segments = [];
+
+  for (const rLine of rawLines) {
+    let line = rLine.trim();
+    if (!line) continue;
+
+    // Lewati baris yang hanya berupa judul kategori/header (contoh: "Mie Gacoan:", "Menu Sarapan:", "Order:")
+    if (/^(?:mie\s*gacoan|menu|makanan|sarapan|makan\s*(?:siang|malam)|snack|camilan|pesanan|order)\s*:?$/i.test(line)) {
+      continue;
+    }
+
+    // Jika satu baris berisi pemisah seperti "+", " dan ", "&", atau koma (yang bukan koma desimal angka)
+    const subParts = line.split(/(?:\s+\+\s+|\s+dan\s+|\s+&\s+|\s*,\s*(?![0-9]))/i);
+    for (const part of subParts) {
+      const cleanPart = part.trim();
+      if (cleanPart) segments.push(cleanPart);
     }
   }
 
-  // Heuristic intelligent fallback if no keywords matched
-  if (!detected.length) {
-    const isDrink = /kopi|teh|jus|susu|sirup|boba|air|smoothie|shake/.test(query);
-    const isHealthy = /rebus|kukus|bakar|salad|bening|sayur|buah|panggang|dada ayam/.test(query);
-    const isFried = /goreng|crispy|tepung|minyak|santan|gulai|lemak/.test(query);
+  // Jika tidak ada segment yang lolos, gunakan seluruh teks
+  if (!segments.length) segments.push(rawText.trim());
 
-    const baseCal = isDrink ? 120 : isHealthy ? 280 : isFried ? 520 : 380;
-    const baseP = isHealthy ? 24 : 14;
-    const baseC = isDrink ? 22 : 44;
-    const baseF = isFried ? 20 : isHealthy ? 6 : 12;
+  const detected = [];
+  const processedMap = new Map(); // name -> index di detected agar kuantitas item yang sama tergabung rapi
 
-    detected.push({
-      item: { name: rawText.slice(0, 36), portion: '1 porsi estimasi AI' },
-      mult: 1,
-      cal: baseCal,
-      p: baseP,
-      c: baseC,
-      f: baseF,
-      fiber: 2,
-    });
+  for (const segment of segments) {
+    let str = segment.toLowerCase().trim();
+
+    // Hapus penomoran di awal baris: "1.", "1)", "1:", "•", "-", "*"
+    str = str.replace(/^\s*(?:\d+[\.\)\-:]|\*|\-|•)\s*/, '').trim();
+    if (!str) continue;
+
+    // Bersihkan kata level pedas (misal "level 1", "level 2", "lvl 3") agar angkanya tidak salah dikira jumlah porsi
+    const qtyCheckStr = str.replace(/\b(?:level|lvl)\s*\d+\b/gi, '');
+
+    // Ekstrak kuantitas / multiplier porsi
+    let mult = 1.0;
+
+    // Cari pola porsi seperti "2 porsi", "2porsi", "2 pcs", "2 buah", "2 butir", "2 mangkok", "2x"
+    const porsiMatch = qtyCheckStr.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(?:porsi|porsian|pcs|buah|butir|potong|lembar|bungkus|gelas|cup|mangkok|piring|ekor|tusuk|bks|x)?(?:\s|$)/i);
+    if (porsiMatch) {
+      const num = parseFloat(porsiMatch[1].replace(',', '.'));
+      if (!isNaN(num) && num > 0) {
+        mult = num;
+      }
+    } else if (qtyCheckStr.includes('1/2') || qtyCheckStr.includes('setengah') || qtyCheckStr.includes('separuh')) {
+      mult = 0.5;
+    } else if (qtyCheckStr.includes('1/4') || qtyCheckStr.includes('seperempat')) {
+      mult = 0.25;
+    } else if (qtyCheckStr.includes('jumbo') || qtyCheckStr.includes('besar')) {
+      mult = 1.35;
+    } else if (qtyCheckStr.includes('kecil')) {
+      mult = 0.75;
+    }
+
+    // Cocokkan dengan knowledge base (greedy longest keyword first)
+    let matchedItem = null;
+    for (const rule of allRules) {
+      if (str.includes(rule.kw)) {
+        matchedItem = rule.item;
+        break;
+      }
+    }
+
+    if (matchedItem) {
+      if (processedMap.has(matchedItem.name)) {
+        const idx = processedMap.get(matchedItem.name);
+        detected[idx].mult += mult;
+        detected[idx].cal = Math.round(matchedItem.cal * detected[idx].mult);
+        detected[idx].p = Math.round(matchedItem.p * detected[idx].mult * 10) / 10;
+        detected[idx].c = Math.round(matchedItem.c * detected[idx].mult * 10) / 10;
+        detected[idx].f = Math.round(matchedItem.f * detected[idx].mult * 10) / 10;
+        detected[idx].fiber = Math.round(matchedItem.fiber * detected[idx].mult * 10) / 10;
+      } else {
+        const itemObj = {
+          item: matchedItem,
+          mult,
+          cal: Math.round(matchedItem.cal * mult),
+          p: Math.round(matchedItem.p * mult * 10) / 10,
+          c: Math.round(matchedItem.c * mult * 10) / 10,
+          f: Math.round(matchedItem.f * mult * 10) / 10,
+          fiber: Math.round(matchedItem.fiber * mult * 10) / 10,
+        };
+        processedMap.set(matchedItem.name, detected.length);
+        detected.push(itemObj);
+      }
+    } else {
+      // Fallback heuristik cerdas untuk makanan tak dikenal
+      const cleanName = str.replace(/\b\d+(?:[.,]\d+)?\s*(?:porsi|pcs|buah|x)?\b/gi, '').trim() || segment;
+      const isDrink = /kopi|teh|jus|susu|sirup|boba|air|smoothie|shake|es\s+/i.test(cleanName);
+      const isHealthy = /rebus|kukus|bakar|salad|bening|sayur|buah|panggang|dada ayam/i.test(cleanName);
+      const isFried = /goreng|crispy|tepung|minyak|santan|gulai|lemak|keju/i.test(cleanName);
+
+      const baseCal = isDrink ? 120 : isHealthy ? 220 : isFried ? 420 : 320;
+      const baseP = isHealthy ? 20 : 12;
+      const baseC = isDrink ? 24 : 35;
+      const baseF = isFried ? 18 : isHealthy ? 4 : 10;
+
+      const formattedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+      detected.push({
+        item: { name: formattedName, portion: `${mult} porsi estimasi AI` },
+        mult,
+        cal: Math.round(baseCal * mult),
+        p: Math.round(baseP * mult * 10) / 10,
+        c: Math.round(baseC * mult * 10) / 10,
+        f: Math.round(baseF * mult * 10) / 10,
+        fiber: Math.round(1.5 * mult * 10) / 10,
+      });
+    }
   }
 
+  // Hitung total makro & kalori gabungan
   const totalCal = detected.reduce((a, b) => a + b.cal, 0);
   const totalP = Math.round(detected.reduce((a, b) => a + b.p, 0) * 10) / 10;
   const totalC = Math.round(detected.reduce((a, b) => a + b.c, 0) * 10) / 10;
@@ -379,26 +467,32 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch') {
   const dailyTarget = calcDailyLimit(profile);
   const pctOfDaily = Math.round((totalCal / dailyTarget) * 100);
 
+  // Buat Judul dan Breakdown Komponen Terdeteksi
+  const title = detected.map((d) => (d.mult !== 1 ? `${d.mult}x ` : '1x ') + d.item.name).join(' + ');
+  const breakdownText = 'Komponen terdeteksi: ' + detected.map((d) => `${d.mult !== 1 ? d.mult + 'x ' : ''}${d.item.name} (~${d.cal} kcal)`).join(', ');
+
+  // Saran analisis gizi & defisit kalori kontekstual yang realistis
   let advice = '';
-  if (totalCal > 700) {
-    advice = `⚠️ Makanan ini tergolong padat kalori (${totalCal} kcal, memakan ~${pctOfDaily}% dari limit kalori harian Anda). ` +
-      `Disarankan untuk memilih menu makan berikutnya yang sangat ringan (seperti sup sayur bening atau dada ayam fillet kukus), serta perbanyak minum air putih.`;
+  if (totalCal > 950) {
+    advice = `⚠️ Menu ini tergolong padat kalori (${totalCal.toLocaleString('id-ID')} kcal, memakan ~${pctOfDaily}% dari limit kalori harian Anda) dengan kandungan lemak cukup tinggi (~${totalF}g) dari keju leleh & gorengan crispy. ` +
+      `Kabar baiknya, asupan protein sangat melimpah (${totalP}g). Untuk menjaga target defisit kalori hari ini, jadwalkan makan berikutnya dengan menu sangat ringan (seperti sup sayur bening bayam, sup tahu bening, atau buah potong) dan minum 2.5L air putih.`;
+  } else if (totalCal > 650) {
+    advice = `💡 Asupan kalori cukup substansial (${totalCal} kcal, ~${pctOfDaily}% target harian). ` +
+      `Protein tercukupi dengan baik (${totalP}g). Untuk jadwal makan berikutnya, prioritaskan sayuran hijau berserat dan kurangi asupan karbohidrat berminyak.`;
   } else if (totalP >= 28) {
-    advice = `🌟 Sangat bagus untuk program defisit kalori! Asupan tinggi protein (${totalP}g) efektif mempertahankan massa otot dan memberi rasa kenyang bertahan lama. ` +
-      `Makanan ini menyerap ~${pctOfDaily}% kuota harian (${totalCal} kcal).`;
-  } else if (totalF > 20) {
-    advice = `💡 Cukup tinggi lemak (${totalF}g), kemungkinan dari minyak goreng atau santan. ` +
-      `Untuk jam makan selanjutnya, utamakan metode masak rebus/kukus dan perbanyak serat sayuran hijau untuk memperlancar metabolisme.`;
+    advice = `🌟 Sangat bagus untuk target komposisi tubuh! Asupan tinggi protein (${totalP}g) efektif melindungi massa otot dan menjaga rasa kenyang berjam-jam. ` +
+      `Menyerap ~${pctOfDaily}% batas kalori harian (${totalCal} kcal).`;
   } else {
-    advice = `✅ Porsi seimbang dan terkontrol (~${pctOfDaily}% dari batas kalori harian). ` +
-      `Sangat pas untuk dimasukkan ke jadwal harian Anda tanpa khawatir surplus berlebih.`;
+    advice = `✅ Porsi seimbang dan terkontrol (~${pctOfDaily}% dari batas kalori harian). Sangat ideal untuk mendukung proses defisit kalori Anda.`;
   }
+
+  const deliverySearchQuery = detectedBrand ? detectedBrand : (detected[0]?.item.name || rawText.slice(0, 30));
 
   return {
     rawText,
     mealType,
-    title: detected.map((d) => (d.mult !== 1 ? `${d.mult}x ` : '') + d.item.name).join(' + '),
-    breakdownText: 'Komponen terdeteksi: ' + detected.map((d) => `${d.item.name} (~${d.cal} kcal)`).join(', '),
+    title,
+    breakdownText,
     calories: totalCal,
     protein: totalP,
     carbs: totalC,
@@ -406,6 +500,7 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch') {
     fiber: totalFiber,
     advice,
     detected,
+    deliverySearchQuery,
   };
 }
 
