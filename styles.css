@@ -1219,68 +1219,125 @@ tr:hover .row-actions { opacity: 1; }
 }
 .food-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: var(--surface);
-  transition: background .2s;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background .2s, border-color .2s;
 }
 .food-item:hover {
-  background: var(--surface-2);
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 .food-item-meta {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
 }
 .food-item-main {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
 }
 .food-item-thumb {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   background: #000;
+  margin-top: 2px;
+}
+.food-item-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .food-item-name {
-  font-weight: 500;
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.4;
+  word-break: break-word;
+  white-space: normal;
 }
-.food-item-tags {
+.food-item-macro-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 2px;
+}
+.f-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--muted);
+}
+.f-badge b {
+  font-weight: 600;
+}
+.f-prot b {
+  color: #38bdf8;
+}
+.f-carb b {
+  color: #f59e0b;
+}
+.f-fat b {
+  color: #f43f5e;
+}
+.food-item-notes {
   font-size: 11.5px;
   color: var(--muted);
-  display: flex;
-  gap: 8px;
-  margin-top: 1px;
+  line-height: 1.45;
+  word-break: break-word;
+  margin-top: 3px;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border-left: 2px solid rgba(99, 102, 241, 0.6);
 }
 .food-item-right {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 8px;
   flex-shrink: 0;
+  min-width: 85px;
+  margin-left: 8px;
+  margin-top: 2px;
 }
 .food-item-cal {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 13.5px;
+  font-weight: 700;
+  font-size: 14px;
   color: #fb923c;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 .food-item-del {
-  opacity: 0.4;
-  transition: opacity .2s;
+  opacity: 0.45;
+  transition: opacity .2s, color .2s, transform .15s;
 }
 .food-item:hover .food-item-del {
   opacity: 1;
+}
+.food-item-del:hover {
+  color: var(--rose);
+  transform: scale(1.1);
 }
 
 /* Health Profile & BMI Card */

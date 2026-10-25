@@ -1457,14 +1457,14 @@ function renderFoodLogsList(foodLogs) {
           <div class="food-item-meta">
             <div class="food-item-main">
               ${f.image ? `<img src="${f.image}" class="food-item-thumb" alt="Foto ${esc(f.name)}" />` : ''}
-              <div>
+              <div class="food-item-text">
                 <p class="food-item-name">${esc(f.name)}</p>
-                <div class="food-item-tags">
-                  <span>P: ${f.protein || 0}g</span>
-                  <span>C: ${f.carbs || 0}g</span>
-                  <span>L: ${f.fat || 0}g</span>
-                  ${f.notes ? `<span>· ${esc(f.notes)}</span>` : ''}
+                <div class="food-item-macro-badges">
+                  <span class="f-badge f-prot">P: <b>${f.protein || 0}g</b></span>
+                  <span class="f-badge f-carb">C: <b>${f.carbs || 0}g</b></span>
+                  <span class="f-badge f-fat">L: <b>${f.fat || 0}g</b></span>
                 </div>
+                ${f.notes ? `<p class="food-item-notes">${esc(f.notes)}</p>` : ''}
               </div>
             </div>
           </div>
