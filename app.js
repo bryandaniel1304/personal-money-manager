@@ -926,7 +926,8 @@ function estimateUnknownFoodNutrients(rawFoodName, mult = 1.0) {
 
 function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
   const hasText = Boolean(rawText && rawText.trim());
-  const hasImage = Boolean(imageInfo && imageInfo.dataUrl);
+  const imageList = Array.isArray(imageInfo) ? imageInfo : (imageInfo && imageInfo.dataUrl ? [imageInfo] : []);
+  const hasImage = imageList.length > 0;
 
   if (!hasText && !hasImage) return null;
 
@@ -1072,30 +1073,40 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
       }
     }
   } else if (hasImage) {
-    // Mode Foto Saja (tanpa teks deskripsi) - Deteksi Karakteristik Citra Visual
-    let photoName = 'Sajian Hidangan Siap Santap';
-    let baseCal = 420, baseP = 18, baseC = 44, baseF = 18, baseFiber = 2;
+    // Mode Foto Saja (tanpa teks deskripsi) - Analisis untuk setiap foto yang diunggah
+    imageList.forEach((img, idx) => {
+      let photoName = `Sajian Menu ${idx + 1}`;
+      let baseCal = 420, baseP = 18, baseC = 44, baseF = 18, baseFiber = 2;
+      let note = 'Estimasi visual citra foto';
 
-    if (imageInfo.avgR > 135 && imageInfo.avgR > imageInfo.avgB * 1.25) {
-      photoName = 'Hidangan Olahan Gurih / Bumbu Saus Merah (Hasil Foto)';
-      baseCal = 490; baseP = 22; baseC = 40; baseF = 24; baseFiber = 2;
-    } else if (imageInfo.avgG > imageInfo.avgR && imageInfo.avgG > imageInfo.avgB) {
-      photoName = 'Sajian Sayuran Hijau & Serat Alami (Hasil Foto)';
-      baseCal = 175; baseP = 6; baseC = 20; baseF = 5; baseFiber = 4.5;
-    } else if (imageInfo.avgR > 120 && imageInfo.avgG > 100 && imageInfo.avgB < 95) {
-      photoName = 'Sajian Olahan Krispi / Gorengan Keemasan (Hasil Foto)';
-      baseCal = 480; baseP = 19; baseC = 42; baseF = 23; baseFiber = 1.5;
-    }
+      if (img.avgR > 135 && img.avgR > img.avgB * 1.25) {
+        photoName = imageList.length > 1 ? `Menu ${idx + 1}: Hidangan Gurih / Saus Merah` : 'Hidangan Olahan Gurih / Bumbu Saus Merah';
+        baseCal = 490; baseP = 22; baseC = 40; baseF = 24; baseFiber = 2;
+        note = 'Citra bernuansa gurih / bumbu saus';
+      } else if (img.avgG > img.avgR && img.avgG > img.avgB) {
+        photoName = imageList.length > 1 ? `Menu ${idx + 1}: Sayuran Hijau / Serat Sehat` : 'Sajian Sayuran Hijau & Serat Alami';
+        baseCal = 175; baseP = 6; baseC = 20; baseF = 5; baseFiber = 4.5;
+        note = 'Citra sayuran segar berserat';
+      } else if (img.avgR > 120 && img.avgG > 100 && img.avgB < 95) {
+        photoName = imageList.length > 1 ? `Menu ${idx + 1}: Olahan Krispi Keemasan` : 'Sajian Olahan Krispi / Gorengan Keemasan';
+        baseCal = 480; baseP = 19; baseC = 42; baseF = 23; baseFiber = 1.5;
+        note = 'Citra gorengan/krispi keemasan';
+      } else if (img.avgB > img.avgR && img.avgB > img.avgG) {
+        photoName = imageList.length > 1 ? `Menu ${idx + 1}: Minuman / Sajian Segar` : 'Minuman / Sajian Olahan Segar';
+        baseCal = 140; baseP = 2; baseC = 28; baseF = 3; baseFiber = 0.5;
+        note = 'Citra minuman / hidangan segar';
+      }
 
-    detected.push({
-      item: { name: photoName, portion: '1 porsi (estimasi visual foto)' },
-      mult: 1,
-      cal: baseCal,
-      p: baseP,
-      c: baseC,
-      f: baseF,
-      fiber: baseFiber,
-      notes: 'Estimasi visual citra foto',
+      detected.push({
+        item: { name: photoName, portion: `1 porsi (Foto ${idx + 1})` },
+        mult: 1,
+        cal: baseCal,
+        p: baseP,
+        c: baseC,
+        f: baseF,
+        fiber: baseFiber,
+        notes: note,
+      });
     });
   }
 
@@ -1138,16 +1149,20 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
 
   // Tambahkan visual insight jika ada gambar
   if (hasImage && hasText) {
-    advice += ' 📸 Analisis Multimodal: Citra foto memverifikasi porsi nyata dengan rona gurih keemasan yang selaras dengan deskripsi menu Anda.';
+    advice += imageList.length > 1
+      ? ` 📸 Analisis Multimodal: Terdeteksi ${imageList.length} foto menu makanan yang memverifikasi ragam hidangan Anda.`
+      : ' 📸 Analisis Multimodal: Citra foto memverifikasi porsi nyata dengan rona gurih keemasan yang selaras dengan deskripsi menu Anda.';
   } else if (hasImage && !hasText) {
-    advice += ' 📸 Analisis Foto: Dianalisis berdasarkan kepadatan citra foto. Tip: Tambahkan deskripsi teks untuk rincian menu yang 100% presisi!';
+    advice += imageList.length > 1
+      ? ` 📸 Analisis Foto (${imageList.length} Menu): Masing-masing menu dianalisis terpisah dari kepadatan citra foto. Tip: Tambahkan deskripsi teks untuk rincian menu yang 100% presisi!`
+      : ' 📸 Analisis Foto: Dianalisis berdasarkan kepadatan citra foto. Tip: Tambahkan deskripsi teks untuk rincian menu yang 100% presisi!';
   }
 
   const deliverySearchQuery = detectedBrand ? detectedBrand : (detected[0]?.item.name || (rawText ? rawText.slice(0, 30) : 'Makanan'));
   const sourceType = hasText && hasImage ? 'both' : hasImage ? 'image' : 'text';
 
   return {
-    rawText: rawText || (imageInfo ? `[Foto Makanan: ${imageInfo.name}]` : ''),
+    rawText: rawText || (imageList.length ? `[${imageList.length} Foto Makanan: ${imageList.map((img, i) => img.name || `Foto ${i + 1}`).join(', ')}]` : ''),
     mealType,
     title,
     breakdownText,
@@ -1159,7 +1174,8 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
     advice,
     detected,
     deliverySearchQuery,
-    image: imageInfo?.dataUrl || null,
+    images: imageList.map((img) => img.dataUrl),
+    image: imageList[0]?.dataUrl || null,
     sourceType,
   };
 }
@@ -2010,11 +2026,19 @@ function renderFoodLogsList(foodLogs) {
     if (!items.length) {
       listEl.innerHTML = `<li class="food-item empty-food-item" style="opacity:0.4;font-size:12px;padding:6px 10px;">Belum ada makanan dicatat</li>`;
     } else {
-      listEl.innerHTML = items.map((f) => `
+      listEl.innerHTML = items.map((f) => {
+        const imgs = (f.images && f.images.length) ? f.images : (f.image ? [f.image] : []);
+        const thumbsHtml = imgs.length === 1
+          ? `<img src="${imgs[0]}" class="food-item-thumb" alt="Foto ${esc(f.name)}" />`
+          : imgs.length > 1
+          ? `<div class="food-item-thumbs-stack" title="${imgs.length} foto menu terlampir">${imgs.map((im, i) => `<img src="${im}" class="food-item-thumb" alt="Foto ${i + 1}" />`).join('')}</div>`
+          : '';
+
+        return `
         <li class="food-item" data-id="${f.id}">
           <div class="food-item-meta">
             <div class="food-item-main">
-              ${f.image ? `<img src="${f.image}" class="food-item-thumb" alt="Foto ${esc(f.name)}" />` : ''}
+              ${thumbsHtml}
               <div class="food-item-text">
                 <p class="food-item-name">${esc(f.name)}</p>
                 <div class="food-item-macro-badges">
@@ -2031,7 +2055,8 @@ function renderFoodLogsList(foodLogs) {
             <button type="button" class="icon-btn food-item-del" data-food-action="delete" data-id="${f.id}" title="Hapus makanan" aria-label="Hapus">${ICON.trash}</button>
           </div>
         </li>
-      `).join('');
+      `;
+      }).join('');
     }
   });
 
@@ -2651,36 +2676,68 @@ function bindEvents() {
     }
   });
 
-  // AI Food Image Upload Handlers (File input, Dropzone & Clipboard Paste)
+  // AI Food Image Upload Handlers (Supports Multi-Image / Lebih dari 1 Menu)
   const imageDropzone = $('#image-dropzone');
   const imageInput = $('#ai-food-image-input');
   const imagePreviewBar = $('#image-preview-bar');
-  const imagePreviewImg = $('#image-preview-img');
-  const imagePreviewName = $('#image-preview-name');
-  const btnRemoveFoodImg = $('#btn-remove-food-img');
+  const previewCountBadge = $('#preview-count-badge');
+  const previewGallery = $('#preview-thumbs-gallery');
+  const btnAddMoreFoodImg = $('#btn-add-more-food-img');
+  const btnRemoveAllFoodImg = $('#btn-remove-all-food-img');
 
-  const handleImageFile = async (file) => {
-    if (!file) return;
+  ui.uploadedFoodImages = [];
+
+  const renderImagePreviews = () => {
+    if (!ui.uploadedFoodImages || !ui.uploadedFoodImages.length) {
+      if (imagePreviewBar) imagePreviewBar.hidden = true;
+      if (imageDropzone) imageDropzone.hidden = false;
+      if (imageInput) imageInput.value = '';
+      ui.uploadedFoodImage = null;
+      return;
+    }
+
+    ui.uploadedFoodImage = ui.uploadedFoodImages[0] || null;
+
+    if (imageDropzone) imageDropzone.hidden = true;
+    if (imagePreviewBar) imagePreviewBar.hidden = false;
+    if (previewCountBadge) {
+      const count = ui.uploadedFoodImages.length;
+      previewCountBadge.textContent = count === 1 ? '📸 1 Foto Menu Terpilih' : `📸 ${count} Foto Menu Terpilih`;
+    }
+
+    if (previewGallery) {
+      previewGallery.innerHTML = ui.uploadedFoodImages.map((img, idx) => `
+        <div class="preview-thumb-card" title="${esc(img.name)}">
+          <img src="${img.dataUrl}" alt="Menu ${idx + 1}" />
+          <button type="button" class="card-remove-btn" data-thumb-idx="${idx}" title="Hapus foto ini" aria-label="Hapus foto ini">×</button>
+          <span class="thumb-tag">Menu ${idx + 1}</span>
+        </div>
+      `).join('');
+    }
+  };
+
+  const handleImageFiles = async (fileList) => {
+    if (!fileList || !fileList.length) return;
+    const files = [...fileList].filter((f) => f && f.type && f.type.startsWith('image/'));
+    if (!files.length) {
+      toast('Format file tidak didukung. Harap pilih file gambar (JPG, PNG, WebP).');
+      return;
+    }
+
     try {
-      const compressed = await compressImage(file, 540, 0.72);
-      ui.uploadedFoodImage = compressed;
-
-      if (imagePreviewImg) imagePreviewImg.src = compressed.dataUrl;
-      if (imagePreviewName) imagePreviewName.textContent = compressed.name;
-      if (imagePreviewBar) imagePreviewBar.hidden = false;
-      if (imageDropzone) imageDropzone.hidden = true;
-
-      toast('📸 Foto makanan terlampir! Tambahkan deskripsi atau klik Analisis.');
+      const compressedList = await Promise.all(files.map((f) => compressImage(f, 540, 0.72)));
+      ui.uploadedFoodImages = [...(ui.uploadedFoodImages || []), ...compressedList];
+      renderImagePreviews();
+      const count = ui.uploadedFoodImages.length;
+      toast(`📸 ${files.length} foto berhasil ditambahkan! (Total: ${count} foto menu terlampir)`);
     } catch (err) {
       toast(err.message || 'Gagal memproses gambar makanan.');
     }
   };
 
-  const removeFoodImage = () => {
-    ui.uploadedFoodImage = null;
-    if (imageInput) imageInput.value = '';
-    if (imagePreviewBar) imagePreviewBar.hidden = true;
-    if (imageDropzone) imageDropzone.hidden = false;
+  const removeFoodImages = () => {
+    ui.uploadedFoodImages = [];
+    renderImagePreviews();
   };
 
   imageDropzone?.addEventListener('click', () => imageInput?.click());
@@ -2691,13 +2748,28 @@ function bindEvents() {
     }
   });
 
+  btnAddMoreFoodImg?.addEventListener('click', () => imageInput?.click());
+  btnRemoveAllFoodImg?.addEventListener('click', removeFoodImages);
+
   imageInput?.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files[0]) {
-      handleImageFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length) {
+      handleImageFiles(e.target.files);
     }
   });
 
-  // Drag and Drop support
+  // Event delegation untuk hapus satu per satu foto
+  previewGallery?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.card-remove-btn');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.thumbIdx, 10);
+    if (!isNaN(idx) && idx >= 0 && idx < ui.uploadedFoodImages.length) {
+      ui.uploadedFoodImages.splice(idx, 1);
+      renderImagePreviews();
+      toast('Foto berhasil dihapus.');
+    }
+  });
+
+  // Drag and Drop support (bisa multiple files)
   imageDropzone?.addEventListener('dragover', (e) => {
     e.preventDefault();
     imageDropzone.classList.add('dragover');
@@ -2708,43 +2780,42 @@ function bindEvents() {
   imageDropzone?.addEventListener('drop', (e) => {
     e.preventDefault();
     imageDropzone.classList.remove('dragover');
-    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleImageFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      handleImageFiles(e.dataTransfer.files);
     }
   });
 
-  // Clipboard Paste support on AI Food Textarea
+  // Clipboard Paste support on AI Food Textarea (bisa gambar berturut-turut)
   $('#ai-food-input')?.addEventListener('paste', (e) => {
     const items = e.clipboardData?.items;
     if (items) {
+      const pastedFiles = [];
       for (const item of items) {
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile();
-          if (file) {
-            handleImageFile(file);
-            break;
-          }
+          if (file) pastedFiles.push(file);
         }
+      }
+      if (pastedFiles.length) {
+        handleImageFiles(pastedFiles);
       }
     }
   });
-
-  btnRemoveFoodImg?.addEventListener('click', removeFoodImage);
 
   // AI Food Estimator
   const runAiAnalysis = (customText = null) => {
     const input = $('#ai-food-input');
     const text = (customText !== null ? customText : input?.value || '').trim();
-    const imageInfo = ui.uploadedFoodImage || null;
+    const images = (ui.uploadedFoodImages && ui.uploadedFoodImages.length) ? ui.uploadedFoodImages : (ui.uploadedFoodImage ? [ui.uploadedFoodImage] : []);
 
-    if (!text && !imageInfo) {
+    if (!text && !images.length) {
       input?.focus();
       toast('Tuliskan deskripsi makanan atau upload foto makanan terlebih dahulu');
       return;
     }
 
     const meal = $('#ai-meal-select')?.value || 'lunch';
-    const result = analyzeFoodWithAI(text, meal, imageInfo);
+    const result = analyzeFoodWithAI(text, meal, images);
     if (!result) return;
 
     ui.lastAiAnalysis = result;
@@ -2770,24 +2841,36 @@ function bindEvents() {
     const adjBox = $('#ai-adjust-inputs');
     if (adjBox) adjBox.hidden = true;
 
-    // Display image thumbnail in result panel if uploaded
+    // Display image thumbnail(s) in result panel if uploaded
     const thumbBox = $('#ai-result-thumb-box');
-    const thumbImg = $('#ai-result-thumb-img');
     const sourceBadge = $('#ai-source-badge');
 
-    if (result.image) {
-      if (thumbBox) thumbBox.hidden = false;
-      if (thumbImg) thumbImg.src = result.image;
+    if (result.images && result.images.length) {
+      if (thumbBox) {
+        thumbBox.hidden = false;
+        thumbBox.innerHTML = result.images.map((imgUrl, i) => `
+          <div class="ai-result-thumb-item" title="Foto Menu ${i + 1}">
+            <img src="${imgUrl}" alt="Menu ${i + 1}" />
+            ${result.images.length > 1 ? `<span class="ai-thumb-badge">Menu ${i + 1}</span>` : ''}
+          </div>
+        `).join('');
+      }
     } else {
-      if (thumbBox) thumbBox.hidden = true;
+      if (thumbBox) {
+        thumbBox.hidden = true;
+        thumbBox.innerHTML = '';
+      }
     }
 
     if (sourceBadge) {
-      sourceBadge.textContent = result.sourceType === 'both'
-        ? '✨ Foto & Deskripsi Teks Dianalisis'
-        : result.sourceType === 'image'
-        ? '📸 Dianalisis Berdasarkan Citra Visual Foto'
-        : '✨ Dianalisis Berdasarkan Deskripsi Teks';
+      const imgCount = result.images ? result.images.length : 0;
+      if (result.sourceType === 'both') {
+        sourceBadge.textContent = imgCount > 1 ? `✨ ${imgCount} Foto & Deskripsi Dianalisis` : '✨ Foto & Deskripsi Teks Dianalisis';
+      } else if (result.sourceType === 'image') {
+        sourceBadge.textContent = imgCount > 1 ? `📸 ${imgCount} Foto Menu Dianalisis` : '📸 Dianalisis Berdasarkan Citra Visual Foto';
+      } else {
+        sourceBadge.textContent = '✨ Dianalisis Berdasarkan Deskripsi Teks';
+      }
     }
 
     // Update online order links for detected food
@@ -2872,6 +2955,7 @@ function bindEvents() {
       fat: ui.lastAiAnalysis.fat,
       notes: ui.lastAiAnalysis.breakdownText,
       image: ui.lastAiAnalysis.image || null,
+      images: ui.lastAiAnalysis.images || (ui.lastAiAnalysis.image ? [ui.lastAiAnalysis.image] : []),
     };
 
     state.nutrition.foodLogs.push(newFood);
@@ -2882,7 +2966,7 @@ function bindEvents() {
     if (panel) panel.hidden = true;
     const inp = $('#ai-food-input');
     if (inp) inp.value = '';
-    removeFoodImage();
+    removeFoodImages();
     toast(`✨ ${newFood.name} (${newFood.calories} kcal) berhasil dicatat!`);
   });
 

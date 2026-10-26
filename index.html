@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=3.7" />
+  <link rel="stylesheet" href="styles.css?v=3.8" />
 </head>
 <body>
   <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -460,11 +460,11 @@
               </div>
 
               <div class="ai-input-wrap">
-                <!-- Image Upload Dropzone & Preview -->
+                <!-- Image Upload Dropzone & Multi-Image Preview -->
                 <div class="ai-image-upload-area" id="ai-image-upload-area">
-                  <input type="file" id="ai-food-image-input" accept="image/*" class="sr-only" aria-label="Upload Foto Makanan" />
+                  <input type="file" id="ai-food-image-input" accept="image/*" multiple class="sr-only" aria-label="Upload Foto Makanan" />
                   
-                  <div class="image-dropzone" id="image-dropzone" role="button" tabindex="0" title="Klik atau seret foto makanan ke sini">
+                  <div class="image-dropzone" id="image-dropzone" role="button" tabindex="0" title="Klik atau seret 1 atau lebih foto makanan ke sini">
                     <div class="dropzone-icon">
                       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -472,22 +472,25 @@
                       </svg>
                     </div>
                     <div class="dropzone-text">
-                      <span class="dropzone-title">📷 Upload Foto Makanan (Kamera / File)</span>
-                      <span class="dropzone-sub">Klik atau seret foto makanan ke sini (JPG, PNG, WebP)</span>
+                      <span class="dropzone-title">📷 Upload Foto Makanan (Bisa Lebih dari 1 Foto)</span>
+                      <span class="dropzone-sub">Klik atau seret 1 atau beberapa foto menu makanan Anda (JPG, PNG, WebP)</span>
                     </div>
                   </div>
 
                   <div class="image-preview-bar" id="image-preview-bar" hidden>
-                    <div class="preview-thumb-wrap">
-                      <img id="image-preview-img" src="" alt="Preview makanan" />
+                    <div class="preview-header-bar">
+                      <span class="preview-badge" id="preview-count-badge">📸 1 Foto Terpilih</span>
+                      <div class="preview-header-actions">
+                        <button type="button" class="btn-xs btn-add-more" id="btn-add-more-food-img" title="Tambah foto menu lainnya">
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                          <span>+ Tambah Foto</span>
+                        </button>
+                        <button type="button" class="btn-xs btn-clear-all" id="btn-remove-all-food-img" title="Hapus semua foto">
+                          <span>Hapus Semua</span>
+                        </button>
+                      </div>
                     </div>
-                    <div class="preview-info">
-                      <span class="preview-badge">📸 Foto Terpilih</span>
-                      <span class="preview-name" id="image-preview-name">makanan.jpg</span>
-                    </div>
-                    <button type="button" class="icon-btn preview-remove-btn" id="btn-remove-food-img" title="Hapus foto" aria-label="Hapus foto">
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                    </button>
+                    <div class="preview-thumbs-gallery" id="preview-thumbs-gallery"></div>
                   </div>
                 </div>
 
@@ -530,9 +533,7 @@
               <div class="ai-result-panel" id="ai-result-panel" hidden>
                 <div class="ai-result-top">
                   <div class="ai-result-title-group">
-                    <div class="ai-result-thumb-box" id="ai-result-thumb-box" hidden>
-                      <img id="ai-result-thumb-img" src="" alt="Foto Makanan Teranalisis" />
-                    </div>
+                    <div class="ai-result-thumb-box" id="ai-result-thumb-box" hidden></div>
                     <div>
                       <span class="ai-source-badge" id="ai-source-badge">✨ Analisis Deskripsi &amp; Foto</span>
                       <h3 class="ai-detected-title" id="ai-res-title">Nasi Padang Rendang</h3>
@@ -1044,6 +1045,6 @@
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
-  <script src="app.js?v=3.7"></script>
+  <script src="app.js?v=3.8"></script>
 </body>
 </html>
