@@ -329,7 +329,36 @@ const FOOD_KNOWLEDGE_BASE = [
     fiber: 2.5
   },
   {
-    keywords: ['nasi hainan komplit', 'nasi hainan'],
+    keywords: [
+      'nasi hainan campur + sate',
+      'nasi hainan campur sate',
+      'nasi hainam campur + sate',
+      'nasi hainam campur sate',
+      'nasi hainan campur',
+      'nasi hainam campur',
+      'nasi hainam ahong',
+      'nasi hainan ahong',
+      'nasi campur hainan',
+      'nasi campur hainam'
+    ],
+    name: 'Nasi Hainan Campur Komplit + Sate',
+    portion: '1 porsi nasi hainan + babi chasiu & panggang + sate manis + kuah',
+    cal: 720,
+    p: 38.0,
+    c: 72.0,
+    f: 32.0,
+    fiber: 2.5,
+    notes: 'Khas Nasi Hainan/Hainam Campur (Ahong 88): Nasi gurih hainan (~260 kcal) + Chasiu/siobak panggang (~260 kcal) + 1 tusuk sate manis gurih (~120 kcal) + Kuah sayur asin telur (~80 kcal)'
+  },
+  {
+    keywords: [
+      'nasi hainan komplit',
+      'nasi hainan ayam',
+      'nasi hainan',
+      'nasi hainam komplit',
+      'nasi hainam ayam',
+      'nasi hainam'
+    ],
     name: 'Nasi Hainan Ayam Komplit',
     portion: '1 porsi nasi minyak hainan + ayam rebus gurih',
     cal: 610,
@@ -337,6 +366,46 @@ const FOOD_KNOWLEDGE_BASE = [
     c: 66.0,
     f: 26.0,
     fiber: 1.8
+  },
+  {
+    keywords: [
+      'kuotie goreng isi 10 pcs',
+      'kuotie goreng isi 10',
+      'kuotie goreng 10 pcs',
+      'kuotie goreng 10',
+      'kuotie goreng isi',
+      'kuotie goreng',
+      'kuo tie goreng',
+      'kuotiek goreng',
+      'gyoza goreng'
+    ],
+    name: 'Kuotie Goreng (1 Porsi isi 10 pcs)',
+    portion: '1 porsi (10 pcs kuotie isi daging cincang & sawi gurih krispi)',
+    cal: 480,
+    p: 22.0,
+    c: 44.0,
+    f: 24.0,
+    fiber: 2.2,
+    notes: '1 porsi isi 10 pcs kuotie goreng khas Ahong / Santong (~48 kcal per pcs): Daging cincang gurih, sayuran sawi putih, kulit pangsit garing renyah'
+  },
+  {
+    keywords: [
+      'kuotie kukus',
+      'kuotie panggang',
+      'kuo tie kukus',
+      'gyoza kukus',
+      'kuotie',
+      'kuo tie',
+      'gyoza'
+    ],
+    name: 'Kuotie Panggang / Kukus',
+    portion: '1 porsi (10 pcs kuotie panggang/kukus lembut)',
+    cal: 410,
+    p: 24.0,
+    c: 42.0,
+    f: 17.0,
+    fiber: 2.2,
+    notes: '1 porsi isi 10 pcs kuotie panggang / kukus tanpa minyak berlebih (~41 kcal per pcs)'
   },
   {
     keywords: ['nasi bakar ayam', 'nasi bakar'],
@@ -943,7 +1012,8 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
   // 2. Deteksi konteks brand / restoran jika ada
   let detectedBrand = '';
   if (hasText) {
-    if (/mie\s*gacoan|gacoan/i.test(rawText)) detectedBrand = 'Mie Gacoan';
+    if (/ahong\s*88|nasi\s*hainan\s*ahong/i.test(rawText)) detectedBrand = 'Nasi Hainan Ahong 88';
+    else if (/mie\s*gacoan|gacoan/i.test(rawText)) detectedBrand = 'Mie Gacoan';
     else if (/sec\s*bowl|secbowl/i.test(rawText)) detectedBrand = 'SEC Bowl';
     else if (/eatlah/i.test(rawText)) detectedBrand = 'Eatlah';
     else if (/yoshinoya/i.test(rawText)) detectedBrand = 'Yoshinoya';
@@ -961,25 +1031,47 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
   const processedMap = new Map();
 
   if (hasText) {
-    // 3. Pecah input menjadi baris dan item-item terpisah
-    const rawLines = rawText.split(/[\r\n]+/);
+    // 3. Pecah input menjadi baris dan pisahkan header restoran jika ada
+    const rawLines = rawText.split(/[\r\n]+/).map(l => l.trim()).filter(Boolean);
+    let linesToProcess = rawLines;
+
+    // Deteksi apakah baris pertama adalah nama resto / brand / header pesanan
+    if (rawLines.length > 1) {
+      const firstLine = rawLines[0];
+      const restLines = rawLines.slice(1);
+      const firstHasNoPortion = !/(?:porsi|porsian|pcs|buah|potong|gelas|cup|mangkok|piring|bowl|box|bungkus|paket|\bx\b)\b/i.test(firstLine);
+      const hasListMarkers = restLines.some(l => /^\s*(?:\d+[\.\)\-:]|\*|\-|•)/.test(l));
+      const firstHasRestoCue = /(?:resto|restaurant|warung|kedai|depot|dapur|cabang|gading\s*serpong|serpong|jakarta|mall|outlet|ahong|ahong\s*88)/i.test(firstLine);
+
+      if (firstHasNoPortion && (hasListMarkers || firstHasRestoCue)) {
+        if (!detectedBrand) {
+          detectedBrand = firstLine;
+        }
+        linesToProcess = restLines;
+      }
+    }
+
     const segments = [];
 
-    for (const rLine of rawLines) {
+    for (const rLine of linesToProcess) {
       let line = rLine.trim();
       if (!line) continue;
 
-      // Jika ada prefix resto/kategori di awal baris seperti "SEC Bowl: 1 porsi Salted Egg..."
-      const colonMatch = line.match(/^([a-zA-Z\s]{3,25}):\s*(.+)$/);
+      // Jika ada prefix resto/kategori di awal baris seperti "SEC Bowl: 1 porsi Salted Egg..." atau "Ahong 88: 1 porsi..."
+      const colonMatch = line.match(/^([a-zA-Z0-9\s\.\-]{3,40}):\s*(.+)$/);
       if (colonMatch) {
         const prefix = colonMatch[1].trim();
         const remainder = colonMatch[2].trim();
-        if (/gacoan|sec\s*bowl|secbowl|eatlah|yoshinoya|kfc|mcd|padang|hokben|starbucks|warteg|menu|sarapan|lunch|dinner/i.test(prefix)) {
-          if (/gacoan/i.test(prefix)) detectedBrand = 'Mie Gacoan';
-          else if (/sec\s*bowl|secbowl/i.test(prefix)) detectedBrand = 'SEC Bowl';
-          else if (/eatlah/i.test(prefix)) detectedBrand = 'Eatlah';
-          else if (/yoshinoya/i.test(prefix)) detectedBrand = 'Yoshinoya';
-          else if (/hokben/i.test(prefix)) detectedBrand = 'HokBen';
+        if (/gacoan|sec\s*bowl|secbowl|eatlah|yoshinoya|kfc|mcd|padang|hokben|starbucks|warteg|ahong|ahong\s*88|menu|sarapan|lunch|dinner/i.test(prefix)) {
+          if (!detectedBrand) {
+            if (/gacoan/i.test(prefix)) detectedBrand = 'Mie Gacoan';
+            else if (/sec\s*bowl|secbowl/i.test(prefix)) detectedBrand = 'SEC Bowl';
+            else if (/eatlah/i.test(prefix)) detectedBrand = 'Eatlah';
+            else if (/yoshinoya/i.test(prefix)) detectedBrand = 'Yoshinoya';
+            else if (/hokben/i.test(prefix)) detectedBrand = 'HokBen';
+            else if (/ahong/i.test(prefix)) detectedBrand = 'Nasi Hainan Ahong 88';
+            else detectedBrand = prefix;
+          }
           line = remainder;
         }
       }
@@ -988,7 +1080,19 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
         continue;
       }
 
-      const subParts = line.split(/(?:\s+\+\s+|\s+dan\s+|\s+&\s+|\s*,\s*(?![0-9]))/i);
+      // Jangan split pada '+' jika baris mengandung menu yang memang namanya memakai '+'
+      // (misal 'Nasi Hainan Campur + Sate')
+      let shouldSplitPlus = true;
+      const lowerLine = line.toLowerCase();
+      if (/campur\s*\+\s*sate/i.test(lowerLine) || allRules.some(r => r.kw.includes('+') && lowerLine.includes(r.kw))) {
+        shouldSplitPlus = false;
+      }
+
+      const splitPattern = shouldSplitPlus
+        ? /(?:\s+\+\s+|\s+dan\s+|\s+&\s+|\s*,\s*(?![0-9]))/i
+        : /(?:\s+dan\s+|\s+&\s+|\s*,\s*(?![0-9]))/i;
+
+      const subParts = line.split(splitPattern);
       for (const part of subParts) {
         const cleanPart = part.trim();
         if (cleanPart) segments.push(cleanPart);
@@ -1003,12 +1107,27 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
       if (!str) continue;
 
       const qtyCheckStr = str.replace(/\b(?:level|lvl)\s*\d+\b/gi, '');
+      // Pisahkan keterangan isi pak seperti 'isi 10 pcs' agar angka 10 tidak tertukar sebagai pengali porsi
+      const withoutPackSize = qtyCheckStr.replace(/\bisi\s*\d+\s*(?:pcs|buah|biji|potong|lembar)?\b/gi, ' ');
+
       let mult = 1.0;
 
-      const porsiMatch = qtyCheckStr.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(?:porsi|porsian|pcs|buah|butir|potong|lembar|bungkus|gelas|cup|mangkok|piring|ekor|tusuk|bks|bowl|box|x)?(?:\s|$)/i);
-      if (porsiMatch) {
-        const num = parseFloat(porsiMatch[1].replace(',', '.'));
+      // 1. Cek porsi dengan unit kata satuan yang wajib (porsi, pcs, mangkok, box, dll.)
+      const unitMatch = withoutPackSize.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(porsi|porsian|pcs|buah|butir|potong|lembar|bungkus|gelas|cup|mangkok|piring|ekor|tusuk|bks|bowl|box|paket)\b/i);
+      // 2. Cek simbol pengali seperti "2x" atau "x 2"
+      const xMatch = withoutPackSize.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*x\b/i) || withoutPackSize.match(/\bx\s*(\d+(?:[.,]\d+)?)(?:\s|$)/i);
+      // 3. Cek angka di awal string (misal: "2 Nasi Goreng") dengan proteksi angka wajar <= 20
+      const startMatch = withoutPackSize.match(/^(\d+(?:[.,]\d+)?)\s+/);
+
+      if (unitMatch) {
+        const num = parseFloat(unitMatch[1].replace(',', '.'));
         if (!isNaN(num) && num > 0) mult = num;
+      } else if (xMatch) {
+        const num = parseFloat(xMatch[1].replace(',', '.'));
+        if (!isNaN(num) && num > 0) mult = num;
+      } else if (startMatch) {
+        const num = parseFloat(startMatch[1].replace(',', '.'));
+        if (!isNaN(num) && num > 0 && num <= 20) mult = num;
       } else if (qtyCheckStr.includes('1/2') || qtyCheckStr.includes('setengah') || qtyCheckStr.includes('separuh')) {
         mult = 0.5;
       } else if (qtyCheckStr.includes('1/4') || qtyCheckStr.includes('seperempat')) {
@@ -1057,7 +1176,11 @@ function analyzeFoodWithAI(rawText, mealType = 'lunch', imageInfo = null) {
           detected.push(itemObj);
         }
       } else {
-        const cleanName = str.replace(/\b\d+(?:[.,]\d+)?\s*(?:porsi|pcs|buah|bowl|box|x)?\b/gi, '').trim() || segment;
+        const cleanName = str
+          .replace(/\bisi\s*\d+\s*(?:pcs|buah|biji|potong)?\b/gi, '')
+          .replace(/\b\d+(?:[.,]\d+)?\s*(?:porsi|porsian|pcs|buah|butir|potong|lembar|bungkus|gelas|cup|mangkok|piring|ekor|tusuk|bks|bowl|box|paket|x)?\b/gi, '')
+          .replace(/^[+\s\-:,]+|[+\s\-:,]+$/g, '')
+          .trim() || segment;
         const est = estimateUnknownFoodNutrients(cleanName, mult);
         const formattedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
         detected.push({
